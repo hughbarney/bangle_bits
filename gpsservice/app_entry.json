@@ -1,0 +1,16 @@
+{ "id": "gpsservice",
+  "name": "Low power GPS Service",
+  "shortName":"GPS Service",
+  "icon": "gpsservice.png",
+  "version":"0.04",
+  "description": "low power GPS widget",
+  "tags": "gps outdoors navigation",
+  "readme": "README.md",
+  "storage": [
+    {"name":"gpsservice.app.js","url":"app.js"},
+    {"name":"gpsservice.settings.js","url":"settings.js"},
+    {"name":"gpsservice.settings.json","url":"settings.json"},
+    {"name":"gpsservice.wid.js","url":"widget.js"},
+    {"name":"gpsservice.img","url":"gpsservice-icon.js","evaluate":true}
+  ]
+},
