@@ -2,8 +2,6 @@
   function getFace(){
     var intervalRefSec;
     var intervalPerf;
-    var tPerf;
-    var buf;
     var pal1color;
     var pal2color;
     var buf1;
@@ -13,6 +11,9 @@
     var heading;
     var CALIBDATA;
 
+    var tLast;
+    var tPerf;
+    
     function init() {
       pal1color = new Uint16Array([0x0000,0xFFC0],0,1);
       pal2color = new Uint16Array([0x0000,0xffff],0,1);
@@ -20,11 +21,15 @@
       buf2 = Graphics.createArrayBuffer(80,40,1,{msb:true});
       img = require("heatshrink").decompress(atob("lEowIPMjAEDngEDvwED/4DCgP/wAEBgf/4AEBg//8AEBh//+AEBj///AEBn///gEBv///wmCAAImCAAIoBFggE/AkaaEABo="));
 
+      intervalRefSec = undefined;
+      intervalPerf = undefined;
+
       bearing = 0; // always point north
       heading = 0;
       tPerf = 0;
       CALIBDATA = require("Storage").readJSON("magnav.json",1)||null;
-      if (!Bangle.isCompassOn()) Bangle.setCompassPower(1);
+      Bangle.setLCDTimeout(15);
+      //if (!Bangle.isCompassOn()) Bangle.setCompassPower(1);
     }
 
     function freeResources() {
@@ -33,12 +38,15 @@
       buf1 = undefined;
       buf2 = undefined;
       img = undefined;
+      
+      intervalRefSec = undefined;
+      intervalPerf = undefined;
 
       bearing = 0;
       heading = 0;
       tPerf = 0;
       CALIBDATA = undefined;
-      if (Bangle.isCompassOn()) Bangle.setCompassPower(0);
+      //if (Bangle.isCompassOn()) Bangle.setCompassPower(0);
     }
 
     function flip1(x,y) {
@@ -52,24 +60,31 @@
     }
     
     function startTimer() {
+      //Bangle.setLCDTimeout(15);
+      if (!Bangle.isCompassOn()) Bangle.setCompassPower(1);
       draw();
       readCompass();
-      intervalRefSec = setInterval(readCompass, 500);
+      if (intervalRefSec === undefined) intervalRefSec = setInterval(readCompass, 500);
       tPerf = getTime();
-      intervalPerf = setInterval(perfCheck, 1000);
+      if (intervalPerf === undefined) intervalPerf = setInterval(perfCheck, 1000);
     }
 
     function stopTimer() {
-      if(intervalRefSec) {intervalRefSec=clearInterval(intervalRefSec);}
-      if(intervalPerf) {intervalPerf=clearInterval(intervalPerf);}
+      if (Bangle.isCompassOn()) Bangle.setCompassPower(0);
+      
+      clearInterval(intervalRefSec);
+      intervalRefSec = undefined;
+      
+      clearInterval(intervalPerf);
+      intervalPerf = undefined;
     }
 
     function perfCheck() {
       var tNow  = getTime();
-      var tDiff = 1000*(tNow - tPerf) - 983;
+      var tDiff = 1000*(tNow - tPerf) - 1000;
       tPerf = tNow;
-      //console.log("perf=" + tDiff);
       LED1.write((tDiff > 50));
+      if (tDiff > 50) console.log("perf=" + tDiff);
     }
 
     function onButtonShort(btn) {}
@@ -80,6 +95,7 @@
     }
 
     function drawCompass(hd) {
+      var t1 = getTime();
       buf1.setColor(1);
       buf1.fillCircle(80,80,79,79);
       buf1.setColor(0);
@@ -87,10 +103,14 @@
       buf1.setColor(1);
       buf1.drawImage(img, 80, 80, {scale:3,  rotate:radians(hd)} );
       flip1(40, 30);
+      var t2 = getTime();
+      var t = Math.round((t2 - t1)*1000);
+      if (t>150) console.log("drawCompass: " + t);
     }
 
     // stops violent compass swings and wobbles
     function newHeading(m,h){ 
+      var t1 = getTime();
       var s = Math.abs(m - h);
       var delta = (m>h)?1:-1;
       if (s>=180){s=360-s; delta = -delta;} 
@@ -99,10 +119,13 @@
       var hd = h + delta*(1 + Math.round(s/5));
       if (hd<0) hd+=360;
       if (hd>360)hd-= 360;
+      var t2 = getTime();
+      //console.log("newHeading: ", Math.round((t2 - t1)*1000));
       return hd;
     }
 
     function tiltfixread(O,S){
+      var t1 = getTime();
       var start = Date.now();
       var m = Bangle.getCompass();
       var g = Bangle.getAccel();
@@ -117,10 +140,15 @@
       var yh = m.dz*sinphi - m.dx*cosphi;
       var psi = Math.atan2(yh,xh)*180/Math.PI;
       if (psi<0) psi+=360;
+      var t2 = getTime();
+      //console.log("tiltfixread: ", Math.round((t2 - t1)*1000));
       return psi;
     }
 
     function readCompass() {
+      var tDiff = (getTime() - tLast)*1000;
+      if (tDiff < 490) console.log("readCompass tDiff="+ tDiff);
+      tLast = getTime();
       var d = tiltfixread(CALIBDATA.offset,CALIBDATA.scale);
       heading = newHeading(d,heading);
       draw();
@@ -131,6 +159,7 @@
       if (dir < 0) dir += 360;
       if (dir > 360) dir -= 360;
       drawCompass(dir);  // we want compass to show us where to go
+      //var t1 = getTime();
       buf2.setColor(1);
       buf2.setFontAlign(-1,-1);
       buf2.setFont("Vector",38);
@@ -139,6 +168,8 @@
       hd = hding < 10 ? "00"+hd : hding < 100 ? "0"+hd : hd;
       buf2.drawString(hd,0,0);
       flip2(90, 200);
+      //var t2 = getTime();
+      //console.log("draw: ", Math.round((t2 - t1)*1000));
     }
     
     return {init:init, freeResources:freeResources, startTimer:startTimer, stopTimer:stopTimer,

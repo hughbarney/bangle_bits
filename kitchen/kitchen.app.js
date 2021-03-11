@@ -26,7 +26,7 @@ function setButtons(){
     face = FACES[iface]();
     g.clear();
     g.reset();
-    face.init();  // will call a draw in most cases
+    face.init();
     startdraw();
   }
 
@@ -91,8 +91,10 @@ Bangle.on('kill',()=>{
 
 Bangle.on('lcdPower',function(on) {
   if (on) {
+    console.log("lcdPower - on");
     startdraw();
   } else {
+    console.log("lcdPower - off");
     stopdraw();
   }
 });
