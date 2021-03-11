@@ -29,7 +29,9 @@
       tPerf = 0;
       CALIBDATA = require("Storage").readJSON("magnav.json",1)||null;
       Bangle.setLCDTimeout(15);
-      //if (!Bangle.isCompassOn()) Bangle.setCompassPower(1);
+      // compass should be powered on before startDraw is called
+      // otherwise compass power widget will not come on
+      if (!Bangle.isCompassOn()) Bangle.setCompassPower(1);
     }
 
     function freeResources() {
@@ -46,7 +48,7 @@
       heading = 0;
       tPerf = 0;
       CALIBDATA = undefined;
-      //if (Bangle.isCompassOn()) Bangle.setCompassPower(0);
+      if (Bangle.isCompassOn()) Bangle.setCompassPower(0);
     }
 
     function flip1(x,y) {
@@ -66,7 +68,7 @@
       readCompass();
       if (intervalRefSec === undefined) intervalRefSec = setInterval(readCompass, 500);
       tPerf = getTime();
-      if (intervalPerf === undefined) intervalPerf = setInterval(perfCheck, 1000);
+      //if (intervalPerf === undefined) intervalPerf = setInterval(perfCheck, 1000);
     }
 
     function stopTimer() {
@@ -75,8 +77,8 @@
       clearInterval(intervalRefSec);
       intervalRefSec = undefined;
       
-      clearInterval(intervalPerf);
-      intervalPerf = undefined;
+      //clearInterval(intervalPerf);
+      //intervalPerf = undefined;
     }
 
     function perfCheck() {
@@ -84,7 +86,8 @@
       var tDiff = 1000*(tNow - tPerf) - 1000;
       tPerf = tNow;
       LED1.write((tDiff > 50));
-      if (tDiff > 50) console.log("perf=" + tDiff);
+      //if (tDiff > 50) console.log("perf=" + tDiff);
+      console.log("perf=" + tDiff);
     }
 
     function onButtonShort(btn) {}
@@ -147,7 +150,8 @@
 
     function readCompass() {
       var tDiff = (getTime() - tLast)*1000;
-      if (tDiff < 490) console.log("readCompass tDiff="+ tDiff);
+      //if (tDiff < 490) console.log("readCompass tDiff="+ tDiff);
+      console.log("readCompass tDiff="+ tDiff);
       tLast = getTime();
       var d = tiltfixread(CALIBDATA.offset,CALIBDATA.scale);
       heading = newHeading(d,heading);

@@ -7,11 +7,12 @@
 
     function init() {
       buf = Graphics.createArrayBuffer(240,92,1,{msb:true});
-      draw();
+      if (!Bangle.isCompassOn()) Bangle.setCompassPower(1);
     }
 
     function freeResources() {
       buf = undefined;
+      if (Bangle.isCompassOn()) Bangle.setCompassPower(0);
     }
     
     function flip() {
@@ -20,6 +21,7 @@
     }
 
     function startTimer() {
+      draw();
       intervalRefSec = setInterval(draw, 1000);
     }
 

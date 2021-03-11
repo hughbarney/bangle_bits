@@ -20,11 +20,13 @@
     }
 
     function startTimer() {
+      if (!Bangle.isCompassOn()) Bangle.setCompassPower(1);
       intervalRefSec = setInterval(draw, 1000);
     }
 
     function stopTimer() {
       if(intervalRefSec) {intervalRefSec=clearInterval(intervalRefSec);}
+      if (Bangle.isCompassOn()) Bangle.setCompassPower(0);
     }
 
     function onButtonShort(btn) {}
