@@ -1,7 +1,6 @@
 (() => {
   function getFace(){
     var intervalRefSec;
-    var intervalPerf;
     var pal1color;
     var pal2color;
     var buf1;
@@ -11,9 +10,6 @@
     var heading;
     var CALIBDATA;
 
-    var tLast;
-    var tPerf;
-    
     function init() {
       pal1color = new Uint16Array([0x0000,0xFFC0],0,1);
       pal2color = new Uint16Array([0x0000,0xffff],0,1);
@@ -22,13 +18,11 @@
       img = require("heatshrink").decompress(atob("lEowIPMjAEDngEDvwED/4DCgP/wAEBgf/4AEBg//8AEBh//+AEBj///AEBn///gEBv///wmCAAImCAAIoBFggE/AkaaEABo="));
 
       intervalRefSec = undefined;
-      intervalPerf = undefined;
 
       bearing = 0; // always point north
       heading = 0;
       tPerf = 0;
       CALIBDATA = require("Storage").readJSON("magnav.json",1)||null;
-      //Bangle.setLCDTimeout(15);
       // compass should be powered on before startDraw is called
       // otherwise compass power widget will not come on
       if (!Bangle.isCompassOn()) Bangle.setCompassPower(1);
@@ -42,7 +36,6 @@
       img = undefined;
       
       intervalRefSec = undefined;
-      intervalPerf = undefined;
 
       bearing = 0;
       heading = 0;
@@ -62,13 +55,10 @@
     }
     
     function startTimer() {
-      //Bangle.setLCDTimeout(15);
       if (!Bangle.isCompassOn()) Bangle.setCompassPower(1);
       draw();
       readCompass();
       if (intervalRefSec === undefined) intervalRefSec = setInterval(readCompass, 500);
-      tPerf = getTime();
-      //if (intervalPerf === undefined) intervalPerf = setInterval(perfCheck, 1000);
     }
 
     function stopTimer() {
@@ -76,18 +66,6 @@
       
       clearInterval(intervalRefSec);
       intervalRefSec = undefined;
-      
-      //clearInterval(intervalPerf);
-      //intervalPerf = undefined;
-    }
-
-    function perfCheck() {
-      var tNow  = getTime();
-      var tDiff = 1000*(tNow - tPerf) - 1000;
-      tPerf = tNow;
-      LED1.write((tDiff > 50));
-      //if (tDiff > 50) console.log("perf=" + tDiff);
-      console.log("perf=" + tDiff);
     }
 
     function onButtonShort(btn) {}
@@ -97,6 +75,7 @@
       return (d*Math.PI) / 180;
     }
 
+    // takes ~95-100ms, have seen it take 1200ms though which will cause tasks to back up
     function drawCompass(hd) {
       var t1 = getTime();
       buf1.setColor(1);
@@ -106,12 +85,11 @@
       buf1.setColor(1);
       buf1.drawImage(img, 80, 80, {scale:3,  rotate:radians(hd)} );
       flip1(40, 30);
-      var t2 = getTime();
-      var t = Math.round((t2 - t1)*1000);
-      if (t>150) console.log("drawCompass: " + t);
+      var t = Math.round((getTime() - t1)*1000);
+      LED1.write((t > 130));
     }
 
-    // stops violent compass swings and wobbles
+    // stops violent compass swings and wobbles, takes 3ms
     function newHeading(m,h){ 
       var t1 = getTime();
       var s = Math.abs(m - h);
@@ -123,10 +101,10 @@
       if (hd<0) hd+=360;
       if (hd>360)hd-= 360;
       var t2 = getTime();
-      //console.log("newHeading: ", Math.round((t2 - t1)*1000));
       return hd;
     }
 
+    // takes approx 7ms
     function tiltfixread(O,S){
       var t1 = getTime();
       var start = Date.now();
@@ -144,15 +122,10 @@
       var psi = Math.atan2(yh,xh)*180/Math.PI;
       if (psi<0) psi+=360;
       var t2 = getTime();
-      //console.log("tiltfixread: ", Math.round((t2 - t1)*1000));
       return psi;
     }
 
     function readCompass() {
-      var tDiff = (getTime() - tLast)*1000;
-      //if (tDiff < 490) console.log("readCompass tDiff="+ tDiff);
-      console.log("readCompass tDiff="+ tDiff);
-      tLast = getTime();
       var d = tiltfixread(CALIBDATA.offset,CALIBDATA.scale);
       heading = newHeading(d,heading);
       draw();
@@ -163,7 +136,6 @@
       if (dir < 0) dir += 360;
       if (dir > 360) dir -= 360;
       drawCompass(dir);  // we want compass to show us where to go
-      //var t1 = getTime();
       buf2.setColor(1);
       buf2.setFontAlign(-1,-1);
       buf2.setFont("Vector",38);
@@ -172,8 +144,6 @@
       hd = hding < 10 ? "00"+hd : hding < 100 ? "0"+hd : hd;
       buf2.drawString(hd,0,0);
       flip2(90, 200);
-      //var t2 = getTime();
-      //console.log("draw: ", Math.round((t2 - t1)*1000));
     }
     
     return {init:init, freeResources:freeResources, startTimer:startTimer, stopTimer:stopTimer,

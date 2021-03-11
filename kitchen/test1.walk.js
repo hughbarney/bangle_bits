@@ -1,7 +1,5 @@
 (() => {
-
   function getFace(){
-    var id = "1:";
     var intervalRefSec;
     var buf;
 
@@ -33,30 +31,18 @@
     function onButtonLong(btn) {}
     
     function draw() {
+      var m = Bangle.getCompass();
+      var h = Math.round(m.heading);
       buf.clear();
       buf.setColor(1);
-      var d = new Date();
-      var da = d.toString().split(" ");
-      var time = da[4];
-      buf.setFont("Vector",54);
+      buf.setFont("Vector",30);
       buf.setFontAlign(0,-1);
-      buf.drawString(time,buf.getWidth()/2,0);
-      buf.setFont("6x8",2);
-      buf.setFontAlign(0,-1);
-      //var date = d.toString().substr(0,15);
-      //buf.drawString(date, buf.getWidth()/2, 70);
-      var val = process.memory();
-      var str = id + " " + Math.round(val.usage*100/val.total) + "%";
-      buf.drawString(str, buf.getWidth()/2, 70);
-      //console.log(str);
+      buf.drawString("Heading: " + h, buf.getWidth()/2, 0);
       flip();
     }
 
     return {init:init, freeResources:freeResources, startTimer:startTimer, stopTimer:stopTimer,
             onButtonShort:onButtonShort, onButtonLong:onButtonLong};
-
   }
-
   return getFace;
-
 })();
