@@ -28,7 +28,7 @@
       heading = 0;
       tPerf = 0;
       CALIBDATA = require("Storage").readJSON("magnav.json",1)||null;
-      Bangle.setLCDTimeout(15);
+      //Bangle.setLCDTimeout(15);
       // compass should be powered on before startDraw is called
       // otherwise compass power widget will not come on
       if (!Bangle.isCompassOn()) Bangle.setCompassPower(1);
