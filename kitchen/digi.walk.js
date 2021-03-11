@@ -7,7 +7,6 @@
 
     function init() {
       buf = Graphics.createArrayBuffer(240,92,1,{msb:true});
-      draw();
     }
 
     function freeResources() {
@@ -20,6 +19,7 @@
     }
 
     function startTimer() {
+      draw();
       intervalRefSec = setInterval(draw, 1000);
     }
 
@@ -56,7 +56,6 @@
     }
     
     function draw() {
-      console.log("digi");
       buf.clear();
       buf.setColor(1);
       var d = new Date();

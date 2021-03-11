@@ -56,8 +56,6 @@
       
       if (!Bangle.isCompassOn())
         Bangle.setCompassPower(1);
-
-      draw();
     }
     
     function freeResources() {
@@ -82,10 +80,12 @@
       previous = undefined;
 
       Bangle.removeListener('GPS', onWaypointerGPS);
+      Bangle.setCompassPower(0);
     }
     
     function startTimer() {
       clear_previous();
+      draw();
       intervalRefSec = setInterval(read_compass, 300);
     }
 
@@ -126,6 +126,7 @@
           Bangle.setGPSPower(1);
           Bangle.on('GPS', onWaypointerGPS);
         } else {
+          Bangle.removeListener('GPS', onWaypointerGPS);
           Bangle.setGPSPower(0);
         }
       }
@@ -139,9 +140,9 @@
       previous.course = -999;
     }
 
-    var c = 0;
+    //var c = 0;
     function drawCompass(course) {
-      if (c++ % 3 === 0) console.log("compass:draw");
+      //if (c++ % 3 === 0) console.log("compass:draw");
       if (previous === undefined) return;
       if (Math.abs(previous.course - course) < 9) return; // reduce number of draws due to compass jitter
       previous.course = course;

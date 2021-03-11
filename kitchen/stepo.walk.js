@@ -9,7 +9,6 @@
       pal4color = new Uint16Array([0x0000,0xFFFF,0x7BEF,0xAFE5],0,2);   // b,w,grey,greenyellow
       pal4red = new Uint16Array([0x0000,0xFFFF,0xF800,0xAFE5],0,2);   // b,w,red,greenyellow
       buf = Graphics.createArrayBuffer(160,160,2,{msb:true});
-      draw();
     }
 
     function freeResources() {
@@ -36,6 +35,7 @@
     }
 
     function startTimer() {
+      draw();
       intervalRefSec = setInterval(draw, 5000);
     }
 
@@ -89,7 +89,6 @@
     }
 
     function draw() {
-      console.log("stepo:draw");
       var d = new Date();
       var da = d.toString().split(" ");
       var time = da[4].substr(0,5);

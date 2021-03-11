@@ -77,12 +77,10 @@ function setButtons(){
 
   setWatch(btn_pressed.bind(null,1), BTN1, {repeat:true,edge:"rising"});
   setWatch(btn_pressed.bind(null,2), BTN2, {repeat:true,edge:"rising"});
-  //setWatch(btn_pressed.bind(null,3), BTN3, {repeat:true,edge:"rising"});
   setWatch(nextFace, BTN3, {repeat:true,edge:"rising"});
 
   setWatch(btn_released.bind(null,1), BTN1, {repeat:true,edge:"falling"});
   setWatch(btn_released.bind(null,2), BTN2, {repeat:true,edge:"falling"});
-  //setWatch(btn_released.bind(null,3), BTN3, {repeat:true,edge:"falling"});
   // BTN 3 long press should always reset the bangle
 }
 
