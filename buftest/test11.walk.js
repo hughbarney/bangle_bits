@@ -1,3 +1,7 @@
+//TEST_11:  dont draw the outer circle
+// reduces to 46ms, but memory size of array is 25600 bits = 3.2kb
+// magnav array is 14400 ~ 1.8k
+
 (() => {
   function getFace(){
     var intervalRefSec;
@@ -5,9 +9,9 @@
     var pal2color;
     var buf1;
     var buf2;
-    var img;
     var bearing;
     var heading;
+    var oldHeading;
     var CALIBDATA;
 
     function init() {
@@ -15,14 +19,15 @@
       pal2color = new Uint16Array([0x0000,0xffff],0,1);
       buf1 = Graphics.createArrayBuffer(160,160,1,{msb:true});
       buf2 = Graphics.createArrayBuffer(80,40,1,{msb:true});
-      img = require("heatshrink").decompress(atob("lEowIPMjAEDngEDvwED/4DCgP/wAEBgf/4AEBg//8AEBh//+AEBj///AEBn///gEBv///wmCAAImCAAIoBFggE/AkaaEABo="));
 
       intervalRefSec = undefined;
 
       bearing = 0; // always point north
       heading = 0;
+      oldHeading = 0;
       tPerf = 0;
       CALIBDATA = require("Storage").readJSON("magnav.json",1)||null;
+      Bangle.setLCDTimeout(15);
       // compass should be powered on before startDraw is called
       // otherwise compass power widget will not come on
       if (!Bangle.isCompassOn()) Bangle.setCompassPower(1);
@@ -33,13 +38,12 @@
       pal2color = undefined;
       buf1 = undefined;
       buf2 = undefined;
-      img = undefined;
       
       intervalRefSec = undefined;
 
       bearing = 0;
       heading = 0;
-      tPerf = 0;
+      oldHeading = 0;
       CALIBDATA = undefined;
       if (Bangle.isCompassOn()) Bangle.setCompassPower(0);
     }
@@ -57,8 +61,7 @@
     function startTimer() {
       if (!Bangle.isCompassOn()) Bangle.setCompassPower(1);
       draw();
-      readCompass();
-      if (intervalRefSec === undefined) intervalRefSec = setInterval(readCompass, 500);
+      if (intervalRefSec === undefined) intervalRefSec = setInterval(draw, 500);
     }
 
     function stopTimer() {
@@ -76,6 +79,7 @@
     }
 
     // takes ~95-100ms, have seen it take 1200ms though which will cause tasks to back up
+    /*
     function drawCompass(hd) {
       var t1 = getTime();
       buf1.setColor(1);
@@ -87,6 +91,31 @@
       flip1(40, 30);
       var t = Math.round((getTime() - t1)*1000);
       LED1.write((t > 130));
+    }
+    */
+
+    // takes 46ms, have seen at 120 ?
+    function drawCompass(hd) {
+      if (hd === oldHeading) return 0;
+      var t1 = getTime();
+      hd=hd*Math.PI/180;
+      var p = [0, 1.1071, Math.PI/4, 2.8198, 3.4633, 7*Math.PI/4 , 5.1760];
+
+      var poly = [
+        80+60*Math.sin(hd+p[0]),       80-60*Math.cos(hd+p[0]),
+        80+44.7214*Math.sin(hd+p[1]),  80-44.7214*Math.cos(hd+p[1]),
+        80+28.2843*Math.sin(hd+p[2]),  80-28.2843*Math.cos(hd+p[2]),
+        80+63.2455*Math.sin(hd+p[3]),  80-63.2455*Math.cos(hd+p[3]),
+        80+63.2455*Math.sin(hd+p[4]),  80-63.2455*Math.cos(hd+p[4]),
+        80+28.2843*Math.sin(hd+p[5]),  80-28.2843*Math.cos(hd+p[5]),
+        80+44.7214*Math.sin(hd+p[6]),  80-44.7214*Math.cos(hd+p[6])
+      ];
+      
+      buf1.fillPoly(poly);
+      flip1(40, 30);
+      var t = Math.round((getTime() - t1)*1000);
+      LED1.write((t > 100));
+      return t;
     }
 
     // stops violent compass swings and wobbles, takes 3ms
@@ -106,8 +135,6 @@
 
     // takes approx 7ms
     function tiltfixread(O,S){
-      var t1 = getTime();
-      var start = Date.now();
       var m = Bangle.getCompass();
       var g = Bangle.getAccel();
       m.dx =(m.x-O.x)*S.x; m.dy=(m.y-O.y)*S.y; m.dz=(m.z-O.z)*S.z;
@@ -121,28 +148,35 @@
       var yh = m.dz*sinphi - m.dx*cosphi;
       var psi = Math.atan2(yh,xh)*180/Math.PI;
       if (psi<0) psi+=360;
-      var t2 = getTime();
       return psi;
     }
 
-    function readCompass() {
+    function draw() {
       var d = tiltfixread(CALIBDATA.offset,CALIBDATA.scale);
       heading = newHeading(d,heading);
-      draw();
-    }
 
-    function draw() {
       var dir = bearing - heading;
       if (dir < 0) dir += 360;
       if (dir > 360) dir -= 360;
-      drawCompass(dir);  // we want compass to show us where to go
+      var t = drawCompass(dir);  // we want compass to show us where to go
+      oldHeading = dir;
+
+      // draw the ID
+      buf2.setColor(1);
+      buf2.setFontAlign(-1,-1);
+      buf2.setFont("Vector",30);
+      buf2.drawString("T11",0,0);
+      flip2(0, 200);
+
+      // draw heading / time
       buf2.setColor(1);
       buf2.setFontAlign(-1,-1);
       buf2.setFont("Vector",38);
       var hding = Math.round(heading);
       var hd = hding.toString();
       hd = hding < 10 ? "00"+hd : hding < 100 ? "0"+hd : hd;
-      buf2.drawString(hd,0,0);
+      //buf2.drawString(hd,0,0);
+      buf2.drawString(t,0,0);
       flip2(90, 200);
     }
     
