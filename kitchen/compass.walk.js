@@ -11,6 +11,7 @@
     var CALIBDATA;
 
     function init() {
+      //showMem("compass1");
       pal1color = new Uint16Array([0x0000,0xFFC0],0,1);
       pal2color = new Uint16Array([0x0000,0xffff],0,1);
       buf1 = Graphics.createArrayBuffer(128,128,1,{msb:true});
@@ -24,6 +25,7 @@
       // compass should be powered on before startDraw is called
       // otherwise compass power widget will not come on
       if (!Bangle.isCompassOn()) Bangle.setCompassPower(1);
+      //showMem("compass2");
     }
 
     function freeResources() {
@@ -61,6 +63,14 @@
       if(intervalRefSec) {intervalRefSec=clearInterval(intervalRefSec);}
       if (Bangle.isCompassOn()) Bangle.setCompassPower(0);
     }
+
+    /*
+    function showMem(msg) {
+      var val = process.memory();
+      var str = msg + " " + Math.round(val.usage*100/val.total) + "%";
+      console.log(str);
+    }
+    */
 
     function getGPSfix() {
       return undefined;

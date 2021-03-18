@@ -13,7 +13,7 @@
     const GDISP_ALT = "g_alt";
     const GDISP_COURSE = "g_course";
 
-    const Y_TIME = 40;
+    const Y_TIME = 30;
     const Y_ACTIVITY = 120;
     const Y_MODELINE = 200;
 
@@ -24,10 +24,13 @@
     let last_fix;
 
     function init() {
-      console.log("gps init()");
+      //showMem("gps1");
+      //E.defrag();
+      //showMem("gps2");
       gpsPowerState = Bangle.isGPSOn();
       gpsDisplay = GDISP_OS;
       clearActivityArea = true;
+      //showMem("gps3");
     }
 
     function freeResources() {
@@ -46,6 +49,14 @@
       if(intervalRefSec) {intervalRefSec=clearInterval(intervalRefSec);}
     }
 
+    /*
+    function showMem(msg) {
+      var val = process.memory();
+      var str = msg + " " + Math.round(val.usage*100/val.total) + "%";
+      console.log(str);
+    }
+    */
+    
     function getGPSfix() {
       return last_fix;
     }
@@ -56,10 +67,11 @@
       if (!gpsPowerState) {
         gpsState = GPS_OFF;
         resetLastFix();
-      } else if (last_fix.fix && gpsPowerState) 
+      } else if (last_fix.fix && gpsPowerState && last_fix.satelites > 0) {
         gpsState = GPS_RUNNING;
-      else if (last_fix.satelites == 0 && gpsPowerState) 
+      } else {
         gpsState = GPS_SATS;
+      }
     }
 
     function onButtonShort(btn) {
@@ -104,25 +116,30 @@
       }
       
       if (!gpsPowerState) {
-        g.setColor(0,255,0);  // green
-        g.setFont("Vector", 60);
+        //g.setColor(0,255,0);  // green
+        //g.setFont("Vector", 60);
+        //g.setFont("6x8", 3);
+        g.setFontVector(30);
+        g.setColor(0xFFC0); 
         g.drawString("GPS off", g.getWidth()/2, Y_ACTIVITY);
         return;
       }
       
-      g.setFont("6x8", 3);
-      g.setColor(1,1,1);
+      //g.setFont("6x8", 3);
+      //g.setColor(1,1,1);
+      g.setFontVector(30);
+      g.setColor(0xFFC0); 
       g.setFontAlign(0, -1);
 
       if (gpsState == GPS_TIME) {
         g.drawString("Waiting for", g.getWidth()/2, Y_ACTIVITY);
-        g.drawString("GPS", g.getWidth()/2, Y_ACTIVITY + 30);
+        g.drawString("GPS", g.getWidth()/2, Y_ACTIVITY + 36);
         return;
       }
 
       if (gpsState == GPS_SATS) {
         g.drawString("Satellites", g.getWidth()/2, Y_ACTIVITY);
-        g.drawString(last_fix.satellites, g.getWidth()/2, Y_ACTIVITY + 30);
+        g.drawString(last_fix.satellites, g.getWidth()/2, Y_ACTIVITY + 36);
         return;
       }
 
