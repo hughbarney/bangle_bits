@@ -6,6 +6,7 @@ var iface = 0;
 var face = FACES[iface]();
 var firstPress
 var pressTimer;
+var gps_fix;
 
 function stopdraw() {
   face.stopTimer();
@@ -17,14 +18,19 @@ function startdraw() {
 }
 
 function nextFace(){
+  stopdraw();
+  var f = face.getGPSfix();
+  if (f !== undefined) gps_fix = f;
+  face.freeResources();
+
   iface += 1
   iface = iface % FACES.length;
-  stopdraw();
-  face.freeResources();
   face = FACES[iface]();
+  
   g.clear();
   g.reset();
   face.init();
+  if (gps_fix !== undefined) face.setGPSfix(gps_fix);
   startdraw();
 }
 

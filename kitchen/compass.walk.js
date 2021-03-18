@@ -62,6 +62,13 @@
       if (Bangle.isCompassOn()) Bangle.setCompassPower(0);
     }
 
+    function getGPSfix() {
+      return undefined;
+    }
+    
+    function setGPSfix(f) {
+    }
+
     function onButtonShort(btn) {}
     function onButtonLong(btn) {}
 
@@ -142,7 +149,9 @@
     }
     
     return {init:init, freeResources:freeResources, startTimer:startTimer, stopTimer:stopTimer,
-            onButtonShort:onButtonShort, onButtonLong:onButtonLong};
+            onButtonShort:onButtonShort, onButtonLong:onButtonLong,
+            setGPSfix:setGPSfix, getGPSfix:getGPSfix
+           };
   }
 
   return getFace;

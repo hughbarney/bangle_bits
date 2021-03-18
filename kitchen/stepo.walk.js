@@ -9,6 +9,7 @@
       pal4color = new Uint16Array([0x0000,0xFFFF,0x7BEF,0xAFE5],0,2);   // b,w,grey,greenyellow
       pal4red = new Uint16Array([0x0000,0xFFFF,0xF800,0xAFE5],0,2);   // b,w,red,greenyellow
       buf = Graphics.createArrayBuffer(160,160,2,{msb:true});
+      console.log("stepo init");
     }
 
     function freeResources() {
@@ -35,12 +36,20 @@
     }
 
     function startTimer() {
+      console.log("stepo startTimer()");
       draw();
       intervalRefSec = setInterval(draw, 5000);
     }
 
     function stopTimer() {
       if(intervalRefSec) {intervalRefSec=clearInterval(intervalRefSec);}
+    }
+
+    function getGPSfix() {
+      return undefined;
+    }
+    
+    function setGPSfix(f) {
     }
 
     function drawSteps() {
@@ -118,8 +127,9 @@
     }
 
     return {init:init, freeResources:freeResources, startTimer:startTimer, stopTimer:stopTimer,
-            onButtonShort:onButtonShort, onButtonLong:onButtonLong};
-
+            onButtonShort:onButtonShort, onButtonLong:onButtonLong,
+            setGPSfix:setGPSfix, getGPSfix:getGPSfix
+           };
   }
 
   return getFace;
