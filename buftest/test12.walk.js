@@ -79,7 +79,7 @@
 
     // takes 46ms, have seen at 120 ?
     function drawCompass(hd) {
-      if (hd === oldHeading) return 0;
+      if (Math.abs(hd - oldHeading) < 2) return 0;
       var t1 = getTime();
       hd=hd*Math.PI/180;
       var p = [0, 1.1071, Math.PI/4, 2.8198, 3.4633, 7*Math.PI/4 , 5.1760];
