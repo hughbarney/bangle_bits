@@ -113,17 +113,15 @@
         g.clearRect(0, Y_ACTIVITY, 239, Y_MODELINE - 1);
         clearActivityArea = false;
       }
-      
+
+      g.setFontVector(26);
+      g.setColor(0xFFC0); 
+      g.setFontAlign(0, -1);
+
       if (!gpsPowerState) {
-        g.setFontVector(30);
-        g.setColor(0xFFC0); 
         g.drawString("GPS off", 120, Y_ACTIVITY);
         return;
       }
-      
-      g.setFontVector(30);
-      g.setColor(0xFFC0); 
-      g.setFontAlign(0, -1);
 
       if (gpsState == GPS_TIME) {
         g.drawString("Waiting for", 120, Y_ACTIVITY);
@@ -191,6 +189,7 @@
       }
       
       clearActivityArea = true;
+      draw();
     }
 
     function cycleGPSDisplay() {
