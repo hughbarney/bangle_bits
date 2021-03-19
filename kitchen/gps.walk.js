@@ -24,46 +24,38 @@
     let last_fix;
 
     function init() {
-      //showMem("gps1");
-      //E.defrag();
-      //showMem("gps2");
       gpsPowerState = Bangle.isGPSOn();
       gpsDisplay = GDISP_OS;
       clearActivityArea = true;
-      //showMem("gps3");
+      resetLastFix();
+      determineGPSState();
     }
 
     function freeResources() {
+      if (Bangle.isGPSOn()) Bangle.removeListener("GPS", processFix);
     }
     
     function startTimer() {
-      gpsPowerState = Bangle.isGPSOn();
-      if (gpsPowerState) Bangle.on('GPS', processFix);
       draw();
       intervalRefSec = setInterval(draw, 5000);
     }
 
     function stopTimer() {
-      gpsPowerState = Bangle.isGPSOn();
-      if (gpsPowerState) Bangle.removeListener("GPS", processFix);
       if(intervalRefSec) {intervalRefSec=clearInterval(intervalRefSec);}
     }
 
-    /*
-    function showMem(msg) {
-      var val = process.memory();
-      var str = msg + " " + Math.round(val.usage*100/val.total) + "%";
-      console.log(str);
-    }
-    */
-    
     function getGPSfix() {
       return last_fix;
     }
 
     function setGPSfix(f) {
       last_fix = f;
+      determineGPSState();
+    }
 
+    function determineGPSState() {
+      gpsPowerState = Bangle.isGPSOn();
+      
       if (!gpsPowerState) {
         gpsState = GPS_OFF;
         resetLastFix();
@@ -72,8 +64,14 @@
       } else {
         gpsState = GPS_SATS;
       }
-    }
 
+      if (gpsState !== GPS_OFF) {
+        Bangle.on('GPS', processFix);
+      } else {
+        Bangle.removeListener("GPS", processFix);
+      }
+    }
+    
     function onButtonShort(btn) {
       if (btn === 1) cycleGPSDisplay();
     }
@@ -98,7 +96,8 @@
       g.setColor(1,1,1);  // white
       g.setFontAlign(0, -1);
 
-      if (gpsState == GPS_SATS || gpsState == GPS_RUNNING) {
+      if (last_fix.time !== undefined && last_fix.time.toUTCString !== undefined &&
+          (gpsState == GPS_SATS || gpsState == GPS_RUNNING)) {
         time = last_fix.time.toUTCString().split(" ");
         time = time[4];
         g.setFont("Vector", 56);
@@ -106,7 +105,7 @@
         g.setFont("Vector", 80);
       }
       
-      g.drawString(time, g.getWidth()/2, Y_TIME);
+      g.drawString(time, 120, Y_TIME);
     }
 
     function drawGPSData() {
@@ -116,30 +115,25 @@
       }
       
       if (!gpsPowerState) {
-        //g.setColor(0,255,0);  // green
-        //g.setFont("Vector", 60);
-        //g.setFont("6x8", 3);
         g.setFontVector(30);
         g.setColor(0xFFC0); 
-        g.drawString("GPS off", g.getWidth()/2, Y_ACTIVITY);
+        g.drawString("GPS off", 120, Y_ACTIVITY);
         return;
       }
       
-      //g.setFont("6x8", 3);
-      //g.setColor(1,1,1);
       g.setFontVector(30);
       g.setColor(0xFFC0); 
       g.setFontAlign(0, -1);
 
       if (gpsState == GPS_TIME) {
-        g.drawString("Waiting for", g.getWidth()/2, Y_ACTIVITY);
-        g.drawString("GPS", g.getWidth()/2, Y_ACTIVITY + 36);
+        g.drawString("Waiting for", 120, Y_ACTIVITY);
+        g.drawString("GPS", 120, Y_ACTIVITY + 36);
         return;
       }
 
       if (gpsState == GPS_SATS) {
-        g.drawString("Satellites", g.getWidth()/2, Y_ACTIVITY);
-        g.drawString(last_fix.satellites, g.getWidth()/2, Y_ACTIVITY + 36);
+        g.drawString("Satellites", 120, Y_ACTIVITY);
+        g.drawString(last_fix.satellites, 120, Y_ACTIVITY + 36);
         return;
       }
 
@@ -185,26 +179,18 @@
     }
 
     function toggleGPSPower() {
-      stopTimer();
       gpsPowerState = !gpsPowerState;
       Bangle.setGPSPower(gpsPowerState ? 1 : 0);
 
-      if (gpsPowerState) {
-        gpsState = GPS_TIME; // waiting first response so we can display time
-        //Bangle.on('GPS', processFix);
-      } else {
-        //Bangle.removeListener("GPS", processFix);
-        gpsState = GPS_OFF;
-      }
       resetLastFix();
-      
+      determineGPSState();
+
       // poke the gps widget indicator to change
       if (WIDGETS.gps !== undefined) {
         WIDGETS.gps.draw();
       }
       
       clearActivityArea = true;
-      startTimer();
     }
 
     function cycleGPSDisplay() {
