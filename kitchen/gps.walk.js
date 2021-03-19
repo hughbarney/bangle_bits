@@ -22,17 +22,30 @@
     let gpsDisplay = GDISP_OS;
     let clearActivityArea = true;
     let last_fix;
+    let listenerCount;
+
+    function log_debug(o) {
+      console.log(o);
+    }
 
     function init() {
+      log_debug("gps init");
       gpsPowerState = Bangle.isGPSOn();
       gpsDisplay = GDISP_OS;
       clearActivityArea = true;
       resetLastFix();
+      listenerCount = 0;
       determineGPSState();
     }
 
     function freeResources() {
-      if (Bangle.isGPSOn()) Bangle.removeListener("GPS", processFix);
+      if (Bangle.isGPSOn()) {
+        if (listenerCount > 0) {
+          Bangle.removeListener("GPS", processFix);
+          listenerCount--;
+          log_debug("freeRes - listener removed " + listenerCount);
+        }
+      }
     }
     
     function startTimer() {
@@ -50,10 +63,12 @@
 
     function setGPSfix(f) {
       last_fix = f;
+      log_debug("setGPSfix: " + f);
       determineGPSState();
     }
 
     function determineGPSState() {
+      log_debug("gps determine state");
       gpsPowerState = Bangle.isGPSOn();
       
       if (!gpsPowerState) {
@@ -65,10 +80,20 @@
         gpsState = GPS_SATS;
       }
 
+      log_debug("gpsState=" + gpsState);
+      
       if (gpsState !== GPS_OFF) {
-        Bangle.on('GPS', processFix);
+        if (listenerCount === 0) {
+          Bangle.on('GPS', processFix);
+          listenerCount++;
+          log_debug("listener added " + listenerCount);
+        }
       } else {
-        Bangle.removeListener("GPS", processFix);
+        if (listenerCount > 0) {
+          Bangle.removeListener("GPS", processFix);
+          listenerCount--;
+          log_debug("listener removed " + listenerCount);
+        }
       }
     }
     
@@ -232,6 +257,9 @@
 
     function processFix(fix) {
       last_fix.time = fix.time;
+
+      log_debug("processFix()");
+      log_debug(fix);
 
       if (gpsState == GPS_TIME) {
         gpsState = GPS_SATS;
