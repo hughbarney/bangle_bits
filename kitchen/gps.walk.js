@@ -25,7 +25,7 @@
     let listenerCount;
 
     function log_debug(o) {
-      console.log(o);
+      //console.log(o);
     }
 
     function init() {
@@ -63,7 +63,8 @@
 
     function setGPSfix(f) {
       last_fix = f;
-      log_debug("setGPSfix: " + f);
+      log_debug("setGPSfix:");
+      log_debug(f);
       determineGPSState();
     }
 

@@ -3,6 +3,6 @@ require("Storage").write("kitchen.info",{
   "name":"Kitchen",
   "src":"kitchen.app.js",  
   "icon":"kitchen.img",
-  "type":"app",
-  "files":"kitchen.info, kitchen.app.js, kitchen.img, kitchen.app.js, digi.walk.js, big.walk.js, ped.walk.js"
+  "type":"clock",
+  "files":"kitchen.info, kitchen.app.js, kitchen.img, stepo.walk.js, digi.walk.js, compass.walk.js, gps.walk.js"
 });

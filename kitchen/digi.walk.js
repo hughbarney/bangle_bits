@@ -119,7 +119,8 @@
         return;
       
       prevInfo = str;
-      g.setFont("6x8", 3);
+      //g.setFont("6x8", 3);
+      g.setFont("Vector",26);
       g.setColor(col);
       g.fillRect(0, Y_MODELINE - 3, 239, Y_MODELINE + 25);
       g.setColor(0,0,0);

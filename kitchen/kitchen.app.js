@@ -2,7 +2,7 @@
 var FACES = [];
 var STOR = require("Storage");
 STOR.list(/\.walk\.js$/).forEach(face=>FACES.push(eval(require("Storage").read(face))));
-var iface = 0;
+var iface = STOR.list(/\.walk\.js$/).indexOf("stepo.walk.js");
 var face = FACES[iface]();
 var firstPress
 var pressTimer;
