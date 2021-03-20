@@ -71,11 +71,15 @@
     function determineGPSState() {
       log_debug("gps determine state");
       gpsPowerState = Bangle.isGPSOn();
+
+      log_debug("last_fix.fix " + last_fix.fix);
+      log_debug("gpsPowerState " + gpsPowerState);
+      log_debug("last_fix.satellites " + last_fix.satellites);
       
       if (!gpsPowerState) {
         gpsState = GPS_OFF;
         resetLastFix();
-      } else if (last_fix.fix && gpsPowerState && last_fix.satelites > 0) {
+      } else if (last_fix.fix && gpsPowerState && last_fix.satellites > 0) {
         gpsState = GPS_RUNNING;
       } else {
         gpsState = GPS_SATS;
@@ -275,6 +279,7 @@
           clearActivityArea = true;
           drawGPSData();
         }
+        gpsState = GPS_RUNNING;
         last_fix = fix;
       }
     }
