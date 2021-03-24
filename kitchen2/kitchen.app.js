@@ -109,7 +109,19 @@ function log_debug(o) {
   console.log(o);
 }
 
+function radians(a) {
+  return a*Math.PI/180;
+}
+
+function degrees(a) {
+  var d = a*180/Math.PI;
+  return (d+360)%360;
+}
+
 function GPS() {
+  this.wp;
+  this.wp_index = 0;
+  this.wp_current = undefined;
   this.GPS_OFF = 0;
   this.GPS_TIME = 1;
   this.GPS_SATS = 2;
@@ -126,6 +138,7 @@ function GPS() {
     satellites: 0
   };
   this.listenerCount = 0;
+  this.loadFirstWaypoint();
 }
 
 GPS.prototype.log_debug = function(o) {
@@ -144,9 +157,9 @@ GPS.prototype.determineGPSState = function() {
   this.log_debug("determineGPSState");
   gpsPowerState = Bangle.isGPSOn();
   
-  this.log_debug("last_fix.fix " + this.last_fix.fix);
-  this.log_debug("gpsPowerState " + this.gpsPowerState);
-  this.log_debug("last_fix.satellites " + this.last_fix.satellites);
+  //this.log_debug("last_fix.fix " + this.last_fix.fix);
+  //this.log_debug("gpsPowerState " + this.gpsPowerState);
+  //this.log_debug("last_fix.satellites " + this.last_fix.satellites);
   
   if (!gpsPowerState) {
     this.gpsState = this.GPS_OFF;
@@ -217,13 +230,13 @@ GPS.prototype.resetLastFix = function() {
 };
 
 function processFix(fix) {
-  log_debug("processFix()");
+  //log_debug("processFix()");
   gpsObj.processFix(fix);
 }
 
 GPS.prototype.processFix = function(fix) {
-  this.log_debug("GPS:processFix()");
-  this.log_debug(fix);
+  //this.log_debug("GPS:processFix()");
+  //this.log_debug(fix);
   this.last_fix.time = fix.time;
   
   if (this.gpsState == this.GPS_TIME) {
@@ -231,13 +244,12 @@ GPS.prototype.processFix = function(fix) {
   }
   
   if (fix.fix) {
-    this.log_debug("Got fix - setting state to GPS_RUNNING");
+    //this.log_debug("Got fix - setting state to GPS_RUNNING");
     this.gpsState = this.GPS_RUNNING;
     if (!this.last_fix.fix) Bangle.buzz(); // buzz on first position
     this.last_fix = fix;
   }
 };
-
 
 GPS.prototype.formatTime = function(now) {
   var fd = now.toUTCString().split(" ");
@@ -260,6 +272,63 @@ GPS.prototype.getOsRef = function() {
   return ref;
 };
 
+GPS.prototype.calcBearing = function(a,b) {
+  var delta = radians(b.lon-a.lon);
+  var alat = radians(a.lat);
+  var blat = radians(b.lat);
+  var y = Math.sin(delta) * Math.cos(blat);
+  var x = Math.cos(alat)*Math.sin(blat) -
+      Math.sin(alat)*Math.cos(blat)*Math.cos(delta);
+  return Math.round(degrees(Math.atan2(y, x)));
+}
+
+GPS.prototype.calcDistance = function(a,b) {
+  var x = radians(a.lon-b.lon) * Math.cos(radians((a.lat+b.lat)/2));
+  var y = radians(b.lat-a.lat);
+  return Math.round(Math.sqrt(x*x + y*y) * 6371000);
+}
+
+GPS.prototype.getWPdistance = function() {
+  //log_debug(this.last_fix);
+  //log_debug(this.wp_current);
+
+  if (this.wp_current.name === "NONE" || this.wp_current.lat === undefined)
+    return 0;
+  else
+    return this.calcDistance(this.last_fix, this.wp_current);
+}
+
+GPS.prototype.getWPbearing = function() {
+  //log_debug(this.last_fix);
+  //log_debug(this.wp_current);
+  
+  if (this.wp_current.name === "NONE" || this.wp_current.lat === undefined)
+    return 0;
+  else
+    return this.calcBearing(this.last_fix, this.wp_current);
+}
+
+GPS.prototype.loadFirstWaypoint = function() {
+  var waypoints = require("Storage").readJSON("waypoints.json")||[{name:"NONE"}];
+  this.wp_index = 0;
+  this.wp_current = waypoints[this.wp_index];
+  log_debug(this.wp_current);
+  return this.wp_current;
+}
+
+GPS.prototype.getCurrentWaypoint = function() {
+  return this.wp_current;
+}
+
+GPS.prototype.nextWaypoint = function(inc) {
+  var waypoints = require("Storage").readJSON("waypoints.json")||[{name:"NONE"}];
+  this.wp_index+=inc;
+  if (this.wp_index>=waypoints.length) this.wp_index=0;
+  if (this.wp_index<0) this.wp_index = waypoints.length-1;
+  this.wp_current = waypoints[this.wp_index];
+  log_debug(this.wp_current);
+  return this.wp_current;
+}
 
 var gpsObj = new GPS();
 
@@ -373,13 +442,13 @@ function to_map_ref(digits, easting, northing) {
 
 /*****************************************************************************
 
-End of GPS oject
+End of GPS object
 
 ******************************************************************************/
 
 
 g.clear();
 Bangle.loadWidgets();
-face.init(GPS);
+face.init(gpsObj);
 startdraw();
 setButtons();

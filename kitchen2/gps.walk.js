@@ -22,7 +22,7 @@
 
     function init(gps) {
       log_debug("gps init");
-      log_debug(gps);
+      //log_debug(gps);
       gpsObject = gps;
       gpsDisplay = GDISP_OS;
       clearActivityArea = true;

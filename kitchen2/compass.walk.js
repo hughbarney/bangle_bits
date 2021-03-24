@@ -10,80 +10,53 @@
     var heading;
     var oldHeading;
     var CALIBDATA;
-    //var waypoints;
-    var wpindex;
-    var wp;
-    var listenerCount;
-    var last_fix;
     var previous;
-    var dist;
+    var wp;
+    var wp_distance;
+    var wp_bearing;
     var loc;
-    
-    const GPS_OFF = "gps_off";
-    const GPS_TIME = "gps_time";
-    const GPS_SATS = "gps_sats";
-    const GPS_RUNNING = "gps_running";
+    var gpsObject;
     
     function log_debug(o) {
       console.log(o);
     }
 
-    function init(g) {
-      showMem("init()");
+    function init(gps) {
+      showMem("compass init() START");
+      gpsObject = gps;
       pal_by = new Uint16Array([0x0000,0xFFC0],0,1); // black, yellow
       pal_bw = new Uint16Array([0x0000,0xffff],0,1); // black, white
       pal_bb = new Uint16Array([0x0000,0x07ff],0,1); // black, blue
-
       buf1 = Graphics.createArrayBuffer(128,128,1,{msb:true});
       buf2 = Graphics.createArrayBuffer(80,40,1,{msb:true});
-
-      showMem("init(2)");
 
       intervalRefSec = undefined;
       bearing = 0; // always point north if GPS is off
       heading = 0;
       oldHeading = 0;
-      listenerCount = 0;
-
-      previous = {
-        bs: '',
-        dst: '',
-        wp_name: '',
-        course: 0,
-        selected: false,
-      };
-
-      showMem("init(3)");
+      previous = {bs:"-", dst:"-", wp_name:"-", course:999};
       loc = require("locale");
-      showMem("init(3b)");
       CALIBDATA = require("Storage").readJSON("magnav.json",1)||null;
-      showMem("init(3c)");
-      //waypoints = require("Storage").readJSON("waypoints.json")||[{name:"NONE"}];
-      loadFirstWaypoint();
-      //wp = waypoints[0];
+      getWaypoint();
+
       /*
        * compass should be powered on before startDraw is called
        * otherwise compass power widget will not come on
        */
-      showMem("init(4)");
-
       if (!Bangle.isCompassOn()) Bangle.setCompassPower(1);
-      showMem("init(5)");
-      resetLastFix();
-      showMem("init(6)");
-      determineGPSState();
-      showMem("init(7)");
+      gps.determineGPSState();
+
+      showMem("compass init() END");
     }
 
     function freeResources() {
-      showMem("freeResources() 1");
+      showMem("compass freeResources() START");
+      gpsObject = undefined;
       pal_by = undefined;
       pal_bw = undefined;
       pal_bb = undefined;
-      showMem("freeResources() 2");
       buf1 = undefined;
       buf2 = undefined;
-      showMem("freeResources() 3");
       intervalRefSec = undefined;
       previous = undefined;
 
@@ -92,12 +65,9 @@
       oldHeading = 0;
       loc = undefined;
       CALIBDATA = undefined;
-      //waypoints = undefined;
       wp = undefined;
-      last_fix = undefined;
       if (Bangle.isCompassOn()) Bangle.setCompassPower(0);
-      E.defrag();
-      showMem("freeResources() END");
+      showMem("compass freeResources() END");
     }
     
     function flip1(x,y) {
@@ -132,70 +102,36 @@
     function showMem(msg) {
       var val = process.memory();
       var str = msg + " " + Math.round(val.usage*100/val.total) + "%";
-      console.log(str);
-    }
-
-    function getGPSfix() {
-      log_debug("getGPSfix()");
-      return last_fix;
-    }
-
-    function setGPSfix(f) {
-      log_debug("setGPSfix()");
-      log_debug(f);
-      last_fix = f;
-      determineGPSState();
+      log_debug(str);
     }
 
     function onButtonShort(btn) {
       switch(btn) {
       case 1:
-        nextWaypoint(-1);
+      log_debug("prev waypoint");
+        gpsObject.nextWaypoint(-1);
         break;
       case 2:
-        nextWaypoint(1);
+      log_debug("next waypoint");
+        gpsObject.nextWaypoint(1);
         break;
       case 3:
       default:
         break;
       }
+      getWaypoint();
+      drawGPSData();
     }
     
     function onButtonLong(btn) {}
 
-    function determineGPSState() {
-      log_debug("determineGPSState()");
-      gpsPowerState = Bangle.isGPSOn();
-
-      log_debug("last_fix.fix " + last_fix.fix);
-      log_debug("gpsPowerState " + gpsPowerState);
-      log_debug("last_fix.satellites " + last_fix.satellites);
-      
-      if (!gpsPowerState) {
-        gpsState = GPS_OFF;
-        resetLastFix();
-      } else if (last_fix.fix && gpsPowerState && last_fix.satellites > 0) {
-        gpsState = GPS_RUNNING;
-      } else {
-        gpsState = GPS_SATS;
-      }
-
-      log_debug("gpsState=" + gpsState);
-      
-      if (gpsState !== GPS_OFF) {
-        if (listenerCount === 0) {
-          Bangle.on('GPS', processFix);
-          listenerCount++;
-          log_debug("listener added " + listenerCount);
-        }
-      } else {
-        if (listenerCount > 0) {
-          Bangle.removeListener("GPS", processFix);
-          listenerCount--;
-          log_debug("listener removed " + listenerCount);
-        }
-      }
-      log_debug("determineGPSState() END");
+    function getWaypoint() {
+      wp = gpsObject.getCurrentWaypoint();
+      wp_distance = gpsObject.getWPdistance();
+      wp_bearing = gpsObject.getWPbearing();
+      log_debug(wp);
+      log_debug(wp_distance);
+      log_debug(wp_bearing);
     }
     
     // takes 32ms
@@ -252,14 +188,18 @@
     }
 
     function draw() {
-      log_debug("draw()");
+      //log_debug("draw()");
       var d = tiltfixread(CALIBDATA.offset,CALIBDATA.scale);
       heading = newHeading(d,heading);
 
-      if (gpsState === GPS_RUNNING) {
+      if (gpsObject.getState() === gpsObject.GPS_RUNNING) {
+        wp_dist = gpsObject.getWPdistance();
+        wp_bearing = gpsObject.getWPbearing();
         bearing = wp_bearing;
       } else {
         bearing = 0;
+        wp_distance = 0;
+        wp_bearing = 0;
       }
 
       var dir = bearing - heading;
@@ -268,7 +208,7 @@
       var t = drawCompass(dir);  // we want compass to show us where to go
       oldHeading = dir;
 
-      if (gpsState === GPS_RUNNING) {
+      if (gpsObject.getState() === gpsObject.GPS_RUNNING) {
         drawGPSData();
       } else {
         drawCompassHeading();
@@ -289,11 +229,11 @@
     }
 
     function drawGPSData() {
-      log_debug("drawGPSData()");
+      //log_debug("drawGPSData()");
       buf2.setFont("Vector",24);
       var bs = wp_bearing.toString();
       bs = wp_bearing<10?"00"+bs : wp_bearing<100 ?"0"+bs : bs;
-      var dst = loc.distance(dist);
+      var dst = loc.distance(wp_distance);
       
       // -1=left (default), 0=center, 1=right
       
@@ -327,98 +267,14 @@
       }
     }
 
-    function radians(a) {
-      return a*Math.PI/180;
-    }
-
-    function degrees(a) {
-      var d = a*180/Math.PI;
-      return (d+360)%360;
-    }
-
-    function calcBearing(a,b){
-      var delta = radians(b.lon-a.lon);
-      var alat = radians(a.lat);
-      var blat = radians(b.lat);
-      var y = Math.sin(delta) * Math.cos(blat);
-      var x = Math.cos(alat)*Math.sin(blat) -
-          Math.sin(alat)*Math.cos(blat)*Math.cos(delta);
-      return Math.round(degrees(Math.atan2(y, x)));
-    }
-
-    function calcDistance(a,b){
-      var x = radians(a.lon-b.lon) * Math.cos(radians((a.lat+b.lat)/2));
-      var y = radians(b.lat-a.lat);
-      return Math.round(Math.sqrt(x*x + y*y) * 6371000);
-    }
-    
-    function loadFirstWaypoint(){
-      var waypoints = require("Storage").readJSON("waypoints.json")||[{name:"NONE"}];
-      wpindex = 0;
-      wp = waypoints[wpindex];
-    }
-    
-    function nextWaypoint(inc){
-      var waypoints = require("Storage").readJSON("waypoints.json")||[{name:"NONE"}];
-      wpindex+=inc;
-      if (wpindex>=waypoints.length) wpindex=0;
-      if (wpindex<0) wpindex = waypoints.length-1;
-      wp = waypoints[wpindex];
-      drawGPSData();
-    }
-
     // clear the attributes that control the display refresh
     function resetPrevious() {
       log_debug("resetPrevious()");
-      previous.bs = '-';
-      previous.dst = '-';
-      previous.wp_name = '-';
-      previous.course = -999;
-    }
-
-    function resetLastFix() {
-      log_debug("resetLastFix()");
-      last_fix = {
-        fix: 0,
-        alt: 0,
-        lat: 0,
-        lon: 0,
-        speed: 0,
-        time: 0,
-        satellites: 0
-      };
-      log_debug("resetLastFix() END");
-    }
-
-    function processFix(fix) {
-      log_debug("processFix()");
-      log_debug(fix);
-
-      last_fix.time = fix.time;
-      
-      if (gpsState == GPS_TIME) {
-        gpsState = GPS_SATS;
-      }
-      
-      if (fix.fix) {
-        gpsState = GPS_RUNNING;
-        last_fix = fix;
-        dist = calcDistance(fix,wp);
-        if (isNaN(dist)) dist = 0;
-        wp_bearing = calcBearing(fix,wp);
-        if (isNaN(wp_bearing)) wp_bearing = 0;
-
-        if (!last_fix.fix) {
-          Bangle.buzz(); // buzz on first position
-          //drawText();
-        }
-      }
+      previous = {bs:"-", dst:"-", wp_name:"-", course:999};
     }
 
     return {init:init, freeResources:freeResources, startTimer:startTimer, stopTimer:stopTimer,
-            onButtonShort:onButtonShort, onButtonLong:onButtonLong,
-            setGPSfix:setGPSfix, getGPSfix:getGPSfix
-           };
+            onButtonShort:onButtonShort, onButtonLong:onButtonLong};
   }
 
   return getFace;
