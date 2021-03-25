@@ -18,7 +18,7 @@
     var gpsObject;
     
     function log_debug(o) {
-      console.log(o);
+      //console.log(o);
     }
 
     function init(gps) {
@@ -108,24 +108,37 @@
     function onButtonShort(btn) {
       switch(btn) {
       case 1:
-      log_debug("prev waypoint");
+        log_debug("prev waypoint");
         gpsObject.nextWaypoint(-1);
         break;
       case 2:
-      log_debug("next waypoint");
+        log_debug("next waypoint");
         gpsObject.nextWaypoint(1);
         break;
       case 3:
       default:
         break;
       }
+      resetPrevious();
       getWaypoint();
       drawGPSData();
     }
     
-    function onButtonLong(btn) {}
+    function onButtonLong(btn) {
+      log_debug("markWaypoint()");
+      if (btn !== 1) return;
+      if (gpsObject.getState() !== gpsObject.GPS_RUNNING) return;
+
+      log_debug("markWaypoint()");
+      
+      gpsObject.markWaypoint();
+      resetPrevious();
+      getWaypoint();
+      drawGPSData();
+    }
 
     function getWaypoint() {
+      log_debug("getWaypoint()");
       wp = gpsObject.getCurrentWaypoint();
       wp_distance = gpsObject.getWPdistance();
       wp_bearing = gpsObject.getWPbearing();
@@ -229,12 +242,15 @@
     }
 
     function drawGPSData() {
-      //log_debug("drawGPSData()");
+      log_debug("drawGPSData()");
       buf2.setFont("Vector",24);
       var bs = wp_bearing.toString();
       bs = wp_bearing<10?"00"+bs : wp_bearing<100 ?"0"+bs : bs;
       var dst = loc.distance(wp_distance);
       
+      log_debug(bs);
+      log_debug(dst);
+
       // -1=left (default), 0=center, 1=right
       
       // show distance on the left
@@ -243,8 +259,13 @@
         buf2.setColor(1);
         buf2.setFontAlign(-1,-1);
         buf2.setFont("Vector", 20);
-        buf2.drawString(dst,0,0);
-        flip2_bw(0, 200);
+        if (gpsObject.waypointHasLocation()) {
+          buf2.drawString(dst,0,0);
+          flip2_bb(0, 200);
+        } else {
+          buf2.drawString(" ",0,0);
+          flip2_bw(0, 200);
+        }
       }
       
       // bearing, place in middle at bottom of compass
@@ -263,7 +284,10 @@
         buf2.setFontAlign(1,-1);     // right, bottom
         buf2.setFont("Vector", 20);
         buf2.drawString(wp.name, 80, 0);
-        flip2_bw(160, 200);
+        if (gpsObject.waypointHasLocation())
+          flip2_bb(160, 200);
+        else
+          flip2_bw(160, 200);
       }
     }
 

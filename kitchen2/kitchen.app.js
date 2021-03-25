@@ -106,7 +106,7 @@ Start of GPS object code so we can share it between faces
 
 
 function log_debug(o) {
-  console.log(o);
+  //console.log(o);
 }
 
 function radians(a) {
@@ -142,7 +142,7 @@ function GPS() {
 }
 
 GPS.prototype.log_debug = function(o) {
-  console.log(o);
+  //console.log(o);
 };
 
 GPS.prototype.getState = function() {
@@ -292,7 +292,7 @@ GPS.prototype.getWPdistance = function() {
   //log_debug(this.last_fix);
   //log_debug(this.wp_current);
 
-  if (this.wp_current.name === "NONE" || this.wp_current.lat === undefined)
+  if (this.wp_current.name === "NONE" || this.wp_current.lat === undefined || this.wp_current.lat === 0)
     return 0;
   else
     return this.calcDistance(this.last_fix, this.wp_current);
@@ -302,7 +302,7 @@ GPS.prototype.getWPbearing = function() {
   //log_debug(this.last_fix);
   //log_debug(this.wp_current);
   
-  if (this.wp_current.name === "NONE" || this.wp_current.lat === undefined)
+  if (this.wp_current.name === "NONE" || this.wp_current.lat === undefined || this.wp_current.lat === 0)
     return 0;
   else
     return this.calcBearing(this.last_fix, this.wp_current);
@@ -318,6 +318,34 @@ GPS.prototype.loadFirstWaypoint = function() {
 
 GPS.prototype.getCurrentWaypoint = function() {
   return this.wp_current;
+}
+
+GPS.prototype.waypointHasLocation = function() {
+  if (this.wp_current.name === "NONE" || this.wp_current.lat === undefined || this.wp_current.lat === 0)
+    return false;
+  else
+    return true;
+}
+
+GPS.prototype.markWaypoint = function() {
+
+  if(this.wp_current.name === "NONE")
+    return;
+
+  log_debug("GPS::markWaypoint()");
+  
+  var waypoints = require("Storage").readJSON("waypoints.json")||[{name:"NONE"}];
+  this.wp_current = waypoints[this.wp_index];
+  
+  if (this.waypointHasLocation()) {
+     waypoints[this.wp_index] = {name:this.wp_current.name, lat:0, lon:0};
+  } else {
+     waypoints[this.wp_index] = {name:this.wp_current.name, lat:this.last_fix.lat, lon:this.last_fix.lon};
+  }
+
+  this.wp_current = waypoints[this.wp_index];
+  require("Storage").writeJSON("waypoints.json", waypoints);
+  log_debug("GPS::markWaypoint() written");
 }
 
 GPS.prototype.nextWaypoint = function(inc) {

@@ -18,14 +18,13 @@
       pal4color = undefined;
       pal4red = undefined;
       buf = undefined;
-      //E.defrag();
       showMem("stepo free 2");
     }
     
     function showMem(msg) {
       var val = process.memory();
       var str = msg + " " + Math.round(val.usage*100/val.total) + "%";
-      console.log(str);
+      //console.log(str);
     }
 
     function flip(x,y) {

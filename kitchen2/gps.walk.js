@@ -17,7 +17,7 @@
     let gpsObject = undefined;
 
     function log_debug(o) {
-      console.log(o);
+      //console.log(o);
     }
 
     function init(gps) {
