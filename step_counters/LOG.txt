@@ -1,0 +1,57 @@
+
+
+
+a.mag returns a value around 1.0
+but even with the bangle sat still it logs noise.
+
+
+  // scale to fit and clip
+  var m = a.mag;
+  //var v = ((m-1)*8192)>>5;
+  //var v = ((m-1)*8192) >> 2;
+  var v;
+
+  if (m > 1) {
+      v = ((m -1) * 8192) >> 2;
+  } else {
+      v = ((1-m) * 8192) >> 2;
+      v = -v;
+  }
+  
+  // handle noise
+  if (v < -20 || v < 20)
+    v = 0;
+
+
+===================
+
+Lets write some code to check the rolling avg of a.mag
+
+
+27-JUNE
+-------
+
+wrote a version of accelog
+determined that threshold is often offset
+The peaks and troughs do not equally straddle the zero line.
+
+
+Thinking about PEAK counting to determine a step.
+
+PEAK detecting - compare 3 points.  The one in the middle is bigger than the 2 either side
+DONT use clipping !
+
+PRO - dont have to dtermine or average thresholds
+
+CON - could be tipped over by noise.
+
+- do need to set a min value to ignore otherwise peaks will be detected all the time.
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,5 @@
+steps_filter_example.js     |  original example as per Bangle Forum
+steps_fw.app.js             |  steps app as per firmware 2v09.90
+fivesteps.js                |  dummy code for state machine
+step_counter.c              |  step counter in FW 2v09.90
+
