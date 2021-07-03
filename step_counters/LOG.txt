@@ -49,6 +49,17 @@ CON - could be tipped over by noise.
 
 
 
+3-JULY
+------
+
+V3B - created, tested - had 261 steps overnight.
+   But descovered a bug at line
+
+HAD            if (active_sample_count = N_ACTIVE_SAMPLES)
+INSTEAD of     if (active_sample_count == N_ACTIVE_SAMPLES)
+
+
+
 
 
 

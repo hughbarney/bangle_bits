@@ -26,7 +26,7 @@ var history = new Int8Array(filter_taps.length);
 const stepCounterThreshold = 1000;
 /// has filtered acceleration passed stepCounterThreshold
 var stepWasLow = false;
-var group_count = 0; // record how many steps in a row before we time out
+//var group_count = 0; // record how many steps in a row before we time out
 var step_count = 0;  // total steps since app start
 var paused = false;  // if we want to pause the display to look at it
 
@@ -47,8 +47,9 @@ function onAccel(a) {
 
   // scale to fit and clip
   var v = ((a.mag-1)*8192)>>5;
+  var t = Math.round((getTime() - t_start)*1000);
 
-
+  
   /**
    *  create a new Int8Array from the existing but starting from pos 1 of the existing history
    *  this drops off index 0 and moves everything up, leaving the last entry to be filled
@@ -62,38 +63,38 @@ function onAccel(a) {
 
   // digital filter, output has to be scaled down as the calculation is integer based, no floating point
   var accFiltered = E.convolve(filter_taps, history, 0) >> 2;
-  console.log("\nr/f: " + raw_clipped + " " + accFiltered);
+  console.log(t, "," + v + "," + accFiltered);
   
   // increment step count history counters
   for (var i = 0 ;i < STEPCOUNTERHISTORY; i++)
     if (stepHistory[i] < 255)
       stepHistory[i]++;
   
-  console.log(" H1: " + stepHistory);
+  //console.log(" H1: " + stepHistory);
   
   // check for steps, a bottom, followed by top threshold crossing = a step
   var hadStep = false;
   if (accFiltered < -stepCounterThreshold) {
     stepWasLow = true;
-    console.log(" LOW");
+    //console.log(" LOW");
   } else if ((accFiltered > stepCounterThreshold) && stepWasLow) {
     stepWasLow = false;
-    console.log(" HIGH");
+    //console.log(" HIGH");
     // We now have something resembling a step!
     // Don't register it unless we've already had X steps within Y time period
-    console.log(" H0: " +  stepHistory[0]);
+    //console.log(" H0: " +  stepHistory[0]);
     if (stepHistory[0] < STEPCOUNTERHISTORY_TIME) {
       hadStep = true;
-      group_count++
-      console.log(" STEP h[0] < 75================================= " + group_count);
+      //group_count++
+      //console.log(" STEP h[0] < 75================================= " + group_count);
     } else {
-      group_count = 0;
+      //group_count = 0;
     }
     // Add it to our history anyway so we can keep track of how many steps we have
     for (i=0;i<STEPCOUNTERHISTORY-1;i++)
       stepHistory[i] = stepHistory[i+1];
     stepHistory[STEPCOUNTERHISTORY-1] = 0;
-    console.log(" H2: " + stepHistory + " - h[0] is last");
+    //console.log(" H2: " + stepHistory + " - h[0] is last");
   }
 
   // output data
@@ -134,11 +135,13 @@ function onAccel(a) {
   }
 }
 
+var t_start = 0;
+
 // allow a screenshot
 function pauseStart() {
   paused = !paused;
+  t_start = getTime();
 }
-
 
 g.clear();
 g.setFont("Vector", 12);
@@ -148,3 +151,4 @@ g.setFontAlign(-1, -1);
 Bangle.on('accel',onAccel);
 Bangle.setLCDTimeout(0);
 setWatch(pauseStart, BTN1, {repeat:true,edge:"rising"});
+

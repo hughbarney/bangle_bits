@@ -10,7 +10,8 @@
  * 1.3 Hz - 2.5 Hz,  gain = 1  desired ripple = 5 dB
  * 2.7 Hz - 6.25 Hz, gain = 0  desired attenuation = -40 dB
  *
- * V3B bypass the filter if the accelerometer is not over threshold for more than 1 second of samples
+ * V3.1 bypass the filter if the accelerometer is not over threshold for more than 1 second of samples
+ * V3.2 fixed assignment issue in if statement
  *
  */
 
@@ -208,14 +209,17 @@ function draw() {
   g.setColor(1,1,1);
   g.setFont("Vector",20);
   g.setFontAlign(0,-1);
-  g.drawString("  " + step_machine.get_state() + "  ", 120, 40, true);
+  g.drawString("3.2 " + step_machine.get_state() + "  ", 120, 40, true);
   g.drawString(" Hold " + step_machine.get_hold_steps() + "  ", 120, 70, true);
   g.drawString("  BATT: " + E.getBattery() + "%", 120, 100, true);
 
+  
   if (running) {
-    g.drawString("Steps: " + step_count, 120, 130, true);
+    g.setColor(0xFFC0); // yellow
+    g.setFont("Vector",60);
+    g.drawString("" + step_count, 120, 140, true);
   } else {
-    g.drawString("(" + step_count + ") BTN1 to START", 120, 120, true);
+    g.drawString("(" + step_count + ") BTN1 to START", 120, 130, true);
   }
 }
 
