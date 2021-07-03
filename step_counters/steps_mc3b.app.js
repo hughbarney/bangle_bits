@@ -12,11 +12,15 @@
  *
  * V3.1 bypass the filter if the accelerometer is not over threshold for more than 1 second of samples
  * V3.2 fixed assignment issue in if statement
+ * v3.3 over counting by 1 step after 5 reached, could be the last 1 second before we bypass the filter
+ *      for this version set X_STEP_COUNT = 4
+ *
  *
  */
 
+const version = "3.3";
 const X_STEPS = 5;         // we need to see X steps in X seconds to move to STEPPING state
-const X_STEPS_COUNT = 5;   // count Y steps once in STEPPING state
+const X_STEPS_COUNT = 4;   // count Y steps once in STEPPING state
 const V_REGISTER = 15;
 const N_ACTIVE_SAMPLES = 12;
 
@@ -209,7 +213,7 @@ function draw() {
   g.setColor(1,1,1);
   g.setFont("Vector",20);
   g.setFontAlign(0,-1);
-  g.drawString("3.2 " + step_machine.get_state() + "  ", 120, 40, true);
+  g.drawString(version + " " + step_machine.get_state() + "  ", 120, 40, true);
   g.drawString(" Hold " + step_machine.get_hold_steps() + "  ", 120, 70, true);
   g.drawString("  BATT: " + E.getBattery() + "%", 120, 100, true);
 
