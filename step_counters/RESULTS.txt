@@ -1,0 +1,30 @@
+
+
+3.3
+----
+
+overnight
+     Bangle 261
+Full day test
+     Amiz  7849,    Bangle  8910   - 13% out - 
+20 minutes Driving
+    Amiz   43       Bangle 293
+Exercise
+    Amiz   6518     Bangle 6463   (99.16%)  - excellent
+
+All day test included some drumming.
+The driving amounted to 600 steps over
+
+Adjust threshold for raw registration
+
+Next version should count detect / reject through state machine
+
+
+3.4
+----
+Raw
+Steering MIN is -35 
+Steering MAX is +44
+
+So we can adjust up from 15 to 20
+
