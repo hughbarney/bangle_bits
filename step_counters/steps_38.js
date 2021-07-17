@@ -19,7 +19,7 @@
  *   | accel |    | raw thresold   |    |                  |   |                   |   |  state  |
  *   |       |----| to gate filter |----| Low Pass Filter  |---| Step Up/Down      |---| machine |-- increment
  *   |1      |    | output        2|    |                 3|   | cycle detection 4 |   |        5|   step count
- *    ---------    ------------------    --------------------   ---------------------   -----------
+ *   ---------    ------------------    --------------------   ---------------------   -----------
  *
  *  2,5 improvements identified and tested by Hugh Barney, July 2021
  *
@@ -32,12 +32,14 @@
  *      exceeed V_RAW_THRESHOLD raw for 2 samples out of every 13
  * v3.7 attempt to use AREA under raw magnitude curve to assess the overall change in gravity over 1 and 5 seconds
  * v3.7.1 set V_AREA_THRESHOLD = 250 (was 300);
+ * v3.8 try an rms based threshold - no better than a rolling average approach
+ *      takes too long to close the gate
  */
 
-const version = "3.7.1";
+const version = "3.8";
 
 const X_STEPS = 5;            // we need to see X steps in X seconds to move to STEPPING state
-const V_AREA_THRESHOLD = 250; // sum of abs(magnetude) over 1 second to be exceeded, screen out noise etc
+const V_RMS_THRESHOLD = 20;   // 
 const T_MAX_STEP = 1000;      // upper limit for time for 1 step (ms)
 const T_MIN_STEP = 167;       // lower limit for time for 1 step (ms)
 
@@ -63,8 +65,8 @@ var stepWasLow = false;  // has filtered acceleration passed stepCounterThreshol
 var step_count = 0;      // total steps since app start
 var pass_count = 0;      // number of seperate passes through the STATE machine that lead to STEPPING
 var reject_count = 0;    // number of rejections through the STATE machine
-var area = 0;
 var gate_off_count = 0;
+var rms = 0;
 
 // acceleromter operates at 12.5Hz
 function onAccel(a) {
@@ -113,9 +115,9 @@ function onAccel(a) {
    *
    */
 
-  area = g_raw_area(history, 13); // 13 samples at 12.5hz ~ approx 1 second
+  rms  = raw_rms(history, 13); // 13 samples at 12.5hz ~ approx 1 second
 
-  if (area < V_AREA_THRESHOLD) {
+  if (rms < V_RMS_THRESHOLD) {
     bypass_filter = true;
   } else {
     if (bypass_filter) gate_off_count++;
@@ -133,8 +135,9 @@ function onAccel(a) {
   }
 
   var t = Math.round((getTime() - t_start)*1000);
-  // this is useful to generate a CSV file of TIME, RAW, FILTERED, AREA values
-  console.log(t + "," + raw_clipped + "," + accFiltered, "," + area);
+  // this is useful to generate a CSV file of TIME, RAW, FILTERED, RMS, BYPASS
+  //console.log(t + "," + raw_clipped + "," + accFiltered, "," + rms + "," + bypass_filter);
+  console.log(t + "," + raw_clipped + "," + accFiltered, "," + rms);
 
   // (4) check for steps, a bottom, followed by top threshold crossing = a step
   var hadStep = false;
@@ -152,22 +155,19 @@ function onAccel(a) {
 }
 
 /**
- * calculate the sum of LEN samples, starting from the most recent
- * this represents the +ve and -ve areas under the curve its a useful
- * way of saying how much change in gravity have we had over a 1
- * second or 5 second period.  For one of spikes in magnitude then
- * the area will be small.
- *
+ * calc rolling rms of raw starting from the most recent up to len
+ * samples
  */
-
-function g_raw_area(arr, len) {
+function raw_rms(arr, len) {
   var sum = 0;
   
   for(var i = 0; i < len; i++) {
-    sum += Math.abs(arr[arr.length - 1 - i]);
+    sum += ( Math.abs(arr[arr.length - 1 - i]) * Math.abs([arr.length - 1 - i]) );
   }
-  return sum;
+  //console.log("sum/len " + (sum /len)); 
+  return Math.round(Math.sqrt(sum / len));
 }
+
 
 /**
  * (5) State Machine
@@ -303,7 +303,7 @@ function draw() {
   g.setFont("Vector",20);
   g.setFontAlign(0,-1);
   g.drawString(version + " " + step_machine.get_state() + "  ", 120, 40, true);
-  g.drawString("HOLD: " + step_machine.get_hold_steps() + "  AREA: " + area, 120, 70, true);
+  g.drawString("HOLD: " + step_machine.get_hold_steps() + "  RMS: " + rms, 120, 70, true);
   g.drawString("BATT: " + E.getBattery() + "%", 120, 100, true);
   g.drawString("Go: " + gate_off_count + " Ps: " + pass_count + "  Rj: " + reject_count, 120, 130, true);
   
