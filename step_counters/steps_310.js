@@ -247,23 +247,35 @@ let step_machine = new STEP_STATE();
  */
 
 function draw() {
-  g.clear();
+  //g.clear();
+  g.clearRect(0, 30, 239, 239);
   g.setColor(0);
   g.setColor(1,1,1);
   g.setFont("Vector",20);
   g.setFontAlign(0,-1);
   g.drawString(version + " " + step_machine.get_state() + "  ", 120, 40, true);
-  g.drawString("Hold " + step_machine.get_hold_steps() + "  ", 120, 70, true);
-  g.drawString("BATT: " + E.getBattery() + "%", 120, 100, true);
-  g.drawString("Ps: " + pass_count + "  Rj: " + reject_count, 120, 130, true);
+
+  var info = "h" + step_machine.get_hold_steps() + " b" + E.getBattery() + " p" + pass_count + " r" + reject_count;
+  g.drawString(info, 120, 70, true);
+
+  var fw_steps = getFwSteps(); // get step count from firmware for comparison
   
   if (running) {
     g.setColor(0xFFC0); // yellow
     g.setFont("Vector",60);
-    g.drawString("" + step_count, 120, 160, true);
+    g.drawString("F" + fw_steps, 120, 120, true);
+    g.setColor(0x07E0); // green
+    g.drawString("A" + step_count, 120, 180, true);
   } else {
     g.drawString("(" + step_count + ") BTN1 to START", 120, 170, true);
   }
+}
+
+function getFwSteps() {
+  if (WIDGETS.wpedom !== undefined) {
+    return WIDGETS.wpedom.getSteps();
+  }
+  return "-";
 }
 
 var running = false;
@@ -294,8 +306,11 @@ Bangle.on('lcdPower', function(on) {
 
 // test2 - use these options through a sleep period
 // uncomment the 2 lines below
-//running = false;  // will get negated by onStartStop()
-//onStartStop();
+running = false;  // will get negated by onStartStop()
+onStartStop();
+
+Bangle.loadWidgets();
+Bangle.drawWidgets();
 
 g.clear();
 setInterval(draw, 1000); // refresh every second
@@ -303,6 +318,6 @@ draw();
 
 // test1 - START / STOP
 // uncomment to experiment using BTN1 for START / STOP
-running = false;  // will get negated by onStartStop()
-setWatch(onStartStop, BTN1, {repeat:true,edge:"rising"});
+//running = false;  // will get negated by onStartStop()
+//setWatch(onStartStop, BTN1, {repeat:true,edge:"rising"});
 
