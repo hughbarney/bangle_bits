@@ -16,11 +16,11 @@
  *   |1      |    |                 2|   | cycle detection  3|   |        4|   step count
  *    ---------    ------------------    ---------------------   -----------
  *
- * v3.11 22 Aug 2021 - as 3.10 but with filter from bangle 2.10.9 firmware
+ * v3.10 21 Aug 2021 - uses Oxford LPF
  *
  */
 
-const version = "3.11";
+const version = "3.10";
 const X_STEPS = 5;            // we need to see X steps in X seconds to move to STEPPING state
 const T_MAX_STEP = 1300;      // upper limit for time for 1 step (ms)
 const T_MIN_STEP = 333;       // lower limit for time for 1 step (ms)
@@ -29,8 +29,8 @@ const N_ACTIVE_SAMPLES = 3;
 
 
 // (2) Low Pass filter
-// filter taps from f/w 2.10.9
-var filter_taps = new Int8Array([5, 6, -4, -17, -15, 4, 11, -10, -27, 8, 80, 118, 80, 8, -27, -10, 11, 4, -15, -17, -4, 6, 5]);
+// a scalled down oxford LPF
+var filter_taps = new Int8Array([-11, -15, 44, 68, 44, -15, -11]);
 
 // create a history buffer the same length as the filter taps array
 var history = new Int8Array(filter_taps.length);
@@ -243,30 +243,58 @@ let step_machine = new STEP_STATE();
 /**
  * standard UI code for the App, not part of the algorithm
  */
-
 function draw() {
-  //g.clear();
-  g.clearRect(0, 30, 239, 239);
+  if (process.env.HWVERSION==1)
+    draw_bangle_v1();
+  else
+    draw_bangle_v2();
+}
+
+function draw_bangle_v1() {
+  var w = g.getWidth();
+  var h = g.getHeight();
+  var info = "h" + step_machine.get_hold_steps() + " b" + E.getBattery() + " p" + pass_count + " r" + reject_count;
+      
+  g.clearRect(0, 30, w - 1, h - 1);
   g.setColor(0);
   g.setColor(1,1,1);
   g.setFont("Vector",20);
   g.setFontAlign(0,-1);
-  g.drawString(version + " " + step_machine.get_state() + "  ", 120, 40, true);
+  g.drawString(version + " " + step_machine.get_state() + "  ", w/2, 40, true);
 
-  var info = "h" + step_machine.get_hold_steps() + " b" + E.getBattery() + " p" + pass_count + " r" + reject_count;
-  g.drawString(info, 120, 70, true);
+  g.drawString(info, w/2, 70, true);
 
   var fw_steps = getFwSteps(); // get step count from firmware for comparison
   
   if (running) {
     g.setColor(0xFFC0); // yellow
     g.setFont("Vector",60);
-    g.drawString("F" + fw_steps, 120, 120, true);
+    g.drawString("F" + fw_steps, w/2, h/2, true);
     g.setColor(0x07E0); // green
-    g.drawString("A" + step_count, 120, 180, true);
+    g.drawString("A" + step_count, w/2, 180, true);
   } else {
-    g.drawString("(" + step_count + ") BTN1 to START", 120, 170, true);
+    g.drawString("(" + step_count + ") BTN1 to START", w/2, 170, true);
   }
+}
+
+function draw_bangle_v2() {
+  var w = g.getWidth();
+  var h = g.getHeight();
+  var info = "h" + step_machine.get_hold_steps() + " b" + E.getBattery() + " p" + pass_count + " r" + reject_count;
+
+  /*
+  g.clearRect(0, 30, w - 1, h - 1);
+  g.setColor(0);
+  g.setColor(1,1,1);
+  g.setFont("Vector",20);
+  g.setFontAlign(0,-1);
+  g.drawString(version + " " + step_machine.get_state() + "  ", w/2, 40, true);
+  g.drawString(info, w/2, 70, true);
+  */
+  
+  g.setColor(0xFFC0); // yellow
+  g.setFont("Vector",60);
+  g.drawString("A" + step_count, w/2, h - 60, true);
 }
 
 function getFwSteps() {
@@ -279,8 +307,8 @@ function getFwSteps() {
 var running = false;
 var t_start = 0;
 
-function onStartStop() {
 
+function onStartStop() {
   running = !running;
   
   if (running) {
