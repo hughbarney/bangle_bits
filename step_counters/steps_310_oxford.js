@@ -20,7 +20,7 @@
  *
  */
 
-const version = "3.10";
+const version = "3.10 Oxford";
 const X_STEPS = 5;            // we need to see X steps in X seconds to move to STEPPING state
 const T_MAX_STEP = 1300;      // upper limit for time for 1 step (ms)
 const T_MIN_STEP = 333;       // lower limit for time for 1 step (ms)
@@ -97,13 +97,13 @@ function onAccel(a) {
 
   var t = Math.round((getTime() - t_start)*1000);
   // this is useful to generate a CSV file of TIME, RAW, FILTERED values
-  console.log(t + "," + raw_clipped + "," + accFiltered);
+  log_debug(t + "," + raw_clipped + "," + accFiltered);
 
   //peak detection
   peak[0] = peak[1]; peak[1] = peak[2]; peak[2] = accFiltered;
   
   if (peak[1] > peak[0] && peak[1] > peak[2] && accFiltered > stepCounterThreshold) {
-    //console.log("  PEAK:   " + peak);
+    //log_debug("  PEAK:   " + peak);
     step_count += step_machine.step_state();
   }
 
@@ -139,7 +139,7 @@ function STEP_STATE() {
 
 
 STEP_STATE.prototype.log_debug = function(s) {
-  console.log("       " + s);
+  log_debug("       " + s);
 };
 
 STEP_STATE.prototype.reset = function() {
@@ -240,6 +240,12 @@ STEP_STATE.prototype.get_state = function() {
 
 let step_machine = new STEP_STATE();
 
+function log_debug(s) {
+  if (process.env.HWVERSION==1)
+    console.log(s);
+  // not for v2 yet as it prints to display and cant turn it off
+}
+
 /**
  * standard UI code for the App, not part of the algorithm
  */
@@ -278,22 +284,29 @@ function draw_bangle_v1() {
 }
 
 function draw_bangle_v2() {
+  var size = Math.floor(g.getWidth()/(7*6));
+  var x = (g.getWidth()/2) - size*6,
+  var y = (g.getHeight()/2) - size*7;
   var w = g.getWidth();
   var h = g.getHeight();
+  
   var info = "h" + step_machine.get_hold_steps() + " b" + E.getBattery() + " p" + pass_count + " r" + reject_count;
 
   /*
-  g.clearRect(0, 30, w - 1, h - 1);
-  g.setColor(0);
   g.setColor(1,1,1);
   g.setFont("Vector",20);
-  g.setFontAlign(0,-1);
   g.drawString(version + " " + step_machine.get_state() + "  ", w/2, 40, true);
   g.drawString(info, w/2, 70, true);
   */
   
-  g.setColor(0xFFC0); // yellow
-  g.setFont("Vector",60);
+  g.reset().clearRect(0, y, w, h);
+  g.setColor(0x0000); // black
+  g.setFontAlign(0,-1);
+  g.setFont("Vector",20);
+  g.drawString(version, w/2, 40, true);
+
+  //g.setColor(0xFFC0); // yellow
+  g.setFont("Vector",40);
   g.drawString("A" + step_count, w/2, h - 60, true);
 }
 
