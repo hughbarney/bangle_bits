@@ -289,6 +289,12 @@ function draw_bangle_v2() {
   var y = (g.getHeight()/2) - size*7;
   var w = g.getWidth();
   var h = g.getHeight();
+
+  var d = new Date();
+  var da = d.toString().split(" ");
+  var hh = da[4].substr(0,2);
+  var mm = da[4].substr(3,2);
+  var ss = da[4].substr(6,2);
   
   var info = "h" + step_machine.get_hold_steps() + " b" + E.getBattery() + " p" + pass_count + " r" + reject_count;
 
@@ -303,7 +309,12 @@ function draw_bangle_v2() {
   g.setColor(0x0000); // black
   g.setFontAlign(0,-1);
   g.setFont("Vector",20);
-  g.drawString(version, w/2, 40, true);
+  g.drawString(version, w/2, 30, true);
+
+  g.setFont("Vector",30);
+  g.drawString(hh + ":" + mm, w/2, 60, true);
+  g.setFont("Vector",20);
+  g.drawString(ss, w/2, 90, true);
 
   //g.setColor(0xFFC0); // yellow
   g.setFont("Vector",40);
