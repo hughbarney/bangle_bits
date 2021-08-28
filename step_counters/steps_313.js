@@ -21,7 +21,7 @@
  *
  */
 
-const version = "3.13 6 14";
+const version = "3.13-6-14";
 const X_STEPS = 6;            // we need to see X steps in X seconds to move to STEPPING state
 const T_MAX_STEP = 1300;      // upper limit for time for 1 step (ms)
 const T_MIN_STEP = 333;       // lower limit for time for 1 step (ms)
@@ -42,6 +42,7 @@ var pass_count = 0;           // number of seperate passes through the STATE mac
 var reject_count = 0;         // number of rejections through the STATE machine
 var active_sample_count = 0; 
 var gate_open = false;        // start closed
+var t_start = getTime();
 
 // acceleromter operates at 12.5Hz
 function onAccel(a) {
@@ -227,16 +228,11 @@ STEP_STATE.prototype.get_state = function() {
 };
 
 let step_machine = new STEP_STATE();
-
-let debug_enabled = false;
-function nrf_on() { debug_enabled = true; }
-function nrf_off() { debug_enabled = false; }
+step_machine.reset();
 
 function log_debug(s) {
   if (process.env.HWVERSION==1) {
-    if(debug_enabled) {
-      //console.log(s);
-    }
+    //console.log(s);
   }
   // not for v2 yet as it prints to display and cant turn it off
 }
@@ -245,76 +241,44 @@ function log_debug(s) {
  * standard UI code for the App, not part of the algorithm
  */
 function draw() {
-  if (process.env.HWVERSION==1)
-    draw_bangle_v1();
-  else
-    draw_bangle_v2();
-}
-
-function draw_bangle_v1() {
-  var w = g.getWidth();
-  var h = g.getHeight();
-  var info = "h" + step_machine.get_hold_steps() + " b" + E.getBattery() + " p" + pass_count + " r" + reject_count;
-      
-  g.clearRect(0, 30, w - 1, h - 1);
-  g.setColor(0);
-  g.setColor(1,1,1);
-  g.setFont("Vector",20);
-  g.setFontAlign(0,-1);
-
-  //g.drawString(version + " " + step_machine.get_state() + "  ", w/2, 40, true);
-  g.drawString(version, w/2, 40, true);
-  g.drawString(info, w/2, 70, true);
-
-  var fw_steps = getFwSteps(); // get step count from firmware for comparison
-  
-  if (running) {
-    g.setColor(0xFFC0); // yellow
-    g.setFont("Vector",60);
-    g.drawString("F" + fw_steps, w/2, h/2, true);
-    g.setColor(0x07E0); // green
-    g.drawString("A" + step_count, w/2, 180, true);
-  } else {
-    g.drawString("(" + step_count + ") BTN1 to START", w/2, 170, true);
-  }
-}
-
-function draw_bangle_v2() {
   var size = Math.floor(g.getWidth()/(7*6));
-  var x = (g.getWidth()/2) - size*6,
-  var y = (g.getHeight()/2) - size*7;
-  var w = g.getWidth();
-  var h = g.getHeight();
+  var x = (g.getWidth()/2);
+  var y = (g.getHeight()/2) - size*12;
 
   var d = new Date();
   var da = d.toString().split(" ");
   var hh = da[4].substr(0,2);
   var mm = da[4].substr(3,2);
-  var ss = da[4].substr(6,2);
   
-  var info = "h" + step_machine.get_hold_steps() + " b" + E.getBattery() + " p" + pass_count + " r" + reject_count;
+  // draw the clock
+  g.reset();
+  g.clearRect(0, y, g.getWidth(), g.getHeight());
+  g.setFont("6x8",size);
+  g.setFontAlign(1,-1);  // right aligned
+  g.drawString(hh, x, y);
+  g.setFontAlign(-1,-1); // left aligned
+  if (d.getSeconds()&1) g.drawString(":", x,y);
+  g.drawString(mm ,x+size*5,y);
 
-  /*
-  g.setColor(1,1,1);
-  g.setFont("Vector",20);
-  g.drawString(version + " " + step_machine.get_state() + "  ", w/2, 40, true);
-  g.drawString(info, w/2, 70, true);
-  */
-  
-  g.reset().clearRect(0, y, w, h);
-  g.setColor(0x0000); // black
+  var fw_steps = getFwSteps();
+
   g.setFontAlign(0,-1);
-  g.setFont("Vector",20);
-  g.drawString(version, w/2, 30, true);
 
-  g.setFont("Vector",30);
-  g.drawString(hh + ":" + mm, w/2, 60, true);
-  g.setFont("Vector",20);
-  g.drawString(ss, w/2, 90, true);
+  if (process.env.HWVERSION==1) g.setColor(0xFFC0); // yellow
+  g.setFont("Vector", 8*size);
+  if (process.env.HWVERSION !=1) {
+    g.setColor("#f00"); // red
+    g.fillRect(0,y + 8*size, g.getWidth(),  y + 16*size);
+    g.setColor("#000"); // black
+  }
+  g.drawString("F" + fw_steps, x, y + 8*size);
+  if (process.env.HWVERSION==1) g.setColor(0x07E0); // green
+  g.drawString("A" + step_count, x, y + 16*size);
 
-  //g.setColor(0xFFC0); // yellow
-  g.setFont("Vector",40);
-  g.drawString("A" + step_count, w/2, h - 60, true);
+  g.reset();
+  g.setFont("6x8",2);
+  g.setFontAlign(1,-1);
+  g.drawString(version, g.getWidth(), g.getHeight() - 16);
 }
 
 function getFwSteps() {
@@ -324,50 +288,29 @@ function getFwSteps() {
   return "-";
 }
 
-var running = false;
-var t_start = 0;
-
-
-function onStartStop() {
-  running = !running;
-  
-  if (running) {
-    step_count = 0; // reset
-    pass_count = 0;
-    reject_count = 0;
-
-    step_machine.reset();
-    t_start = getTime();
-    Bangle.on('accel',onAccel);
-  } else {
-    Bangle.removeListener('accel', onAccel);
-  }
-}
-
-// handle switch display on by pressing BTN1
+// Only update when display turns on
+if (process.env.BOARD!="SMAQ3") // hack for Q3 which is always-on
 Bangle.on('lcdPower', function(on) {
-  if (on) draw();
+  if (secondInterval)
+    clearInterval(secondInterval);
+  secondInterval = undefined;
+  if (on)
+    secondInterval = setInterval(draw, 1000);
+  draw();
 });
 
+var secondInterval = setInterval(draw, 1000);
+g.clear();
 
-// test2 - use these options through a sleep period
-// uncomment the 2 lines below
-running = false;  // will get negated by onStartStop()
-onStartStop();
-
+// Show launcher when button pressed
+Bangle.setUI("clock");
 Bangle.loadWidgets();
 Bangle.drawWidgets();
 
-g.clear();
-setInterval(draw, 1000); // refresh every second
 draw();
+Bangle.on('accel',onAccel);
 
-//NRF.on('connect', nrf_on);
-//NRF.on('disconnect', nrf_off);
-
-
-// test1 - START / STOP
-// uncomment to experiment using BTN1 for START / STOP
-//running = false;  // will get negated by onStartStop()
-//setWatch(onStartStop, BTN1, {repeat:true,edge:"rising"});
+Bangle.on('kill',()=>{
+  Bangle.removeListener('accel', onAccel);
+});
 
