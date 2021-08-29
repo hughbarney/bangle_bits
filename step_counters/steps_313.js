@@ -253,39 +253,23 @@ function draw() {
   // draw the clock
   g.reset();
   g.clearRect(0, y, g.getWidth(), g.getHeight());
-  g.setFont("6x8",size);
+  g.setFont("Vector", 12*size);
   g.setFontAlign(1,-1);  // right aligned
   g.drawString(hh, x, y);
   g.setFontAlign(-1,-1); // left aligned
   if (d.getSeconds()&1) g.drawString(":", x,y);
-  g.drawString(mm ,x+size*5,y);
-
-  var fw_steps = getFwSteps();
+  g.drawString(mm ,x + size*5, y);
 
   g.setFontAlign(0,-1);
-
-  if (process.env.HWVERSION==1) g.setColor(0xFFC0); // yellow
   g.setFont("Vector", 8*size);
-  if (process.env.HWVERSION !=1) {
-    g.setColor("#f00"); // red
-    g.fillRect(0,y + 8*size, g.getWidth(),  y + 16*size);
-    g.setColor("#000"); // black
-  }
-  g.drawString("F" + fw_steps, x, y + 8*size);
   if (process.env.HWVERSION==1) g.setColor(0x07E0); // green
-  g.drawString("A" + step_count, x, y + 16*size);
+  g.drawString(step_count, x, y + 16*size);
 
+  // show version
   g.reset();
   g.setFont("6x8",2);
   g.setFontAlign(1,-1);
   g.drawString(version, g.getWidth(), g.getHeight() - 16);
-}
-
-function getFwSteps() {
-  if (WIDGETS.wpedom !== undefined) {
-    return WIDGETS.wpedom.getSteps();
-  }
-  return "-";
 }
 
 // Only update when display turns on
