@@ -1,0 +1,157 @@
+
+##   CURRENT c code - not lastMinuteReject  Pushback
+====================================================
+
+$ 
+$ cd src/step-count/
+$ make;./main
+gcc -std=c99 main.c -o main
+github.com/gfwilliams/step-count
+----------------------------------
+X_STEPS = 6, RAW_THRESHOLD = 14
+File, Expected, Simulated, Diff, (Orignal)
+HughB-walk-6605.csv, 6605, 6397, -208, (3223)
+HughB-walk-2350.csv, 2350, 2243, -107, (1042)
+HughB-walk-a3070-b3046.csv, 3070, 3013, -57, (1909)
+HughB-drive-36min-0.csv, 0, 160, 160, (1199)
+HughB-drive-29min-0.csv, 0, 192, 192, (1153)
+HughB-drive-a3-b136.csv, 3, 124, 121, (535)
+HughB-work-66.csv, 66, 97, 31, (980)
+HughB-work-66.csv, 66, 97, 31, (980)
+HughB-mixed-390.csv, 390, 541, 151, (1871)
+HughB-general-a260-b573.csv, 260, 578, 318, (3854)
+HughB-housework-a958-b2658.csv, 958, 2663, 1705, (5762)
+TOTAL DIFFERENCE 3979
+$ 
+$ 
+$ 
+$ 
+$ 
+$ 
+$ make;./main
+gcc -std=c99 main.c -o main
+github.com/gfwilliams/step-count
+----------------------------------
+X_STEPS = 6, RAW_THRESHOLD = 15
+File, Expected, Simulated, Diff, (Orignal)
+HughB-walk-6605.csv, 6605, 6313, -292, (3223)
+HughB-walk-2350.csv, 2350, 2233, -117, (1042)
+HughB-walk-a3070-b3046.csv, 3070, 2979, -91, (1909)
+HughB-drive-36min-0.csv, 0, 120, 120, (1199)
+HughB-drive-29min-0.csv, 0, 153, 153, (1153)
+HughB-drive-a3-b136.csv, 3, 111, 108, (535)
+HughB-work-66.csv, 66, 82, 16, (980)
+HughB-work-66.csv, 66, 82, 16, (980)
+HughB-mixed-390.csv, 390, 507, 117, (1871)
+HughB-general-a260-b573.csv, 260, 479, 219, (3854)
+HughB-housework-a958-b2658.csv, 958, 2321, 1363, (5762)
+TOTAL DIFFERENCE 3222
+$ 
+$ make;./main
+gcc -std=c99 main.c -o main
+github.com/gfwilliams/step-count
+----------------------------------
+X_STEPS = 7, RAW_THRESHOLD = 15
+File, Expected, Simulated, Diff, (Orignal)
+HughB-walk-6605.csv, 6605, 6211, -394, (3223)
+HughB-walk-2350.csv, 2350, 2233, -117, (1042)
+HughB-walk-a3070-b3046.csv, 3070, 2967, -103, (1909)
+HughB-drive-36min-0.csv, 0, 84, 84, (1199)
+HughB-drive-29min-0.csv, 0, 123, 123, (1153)
+HughB-drive-a3-b136.csv, 3, 75, 72, (535)
+HughB-work-66.csv, 66, 64, -2, (980)
+HughB-work-66.csv, 66, 64, -2, (980)
+HughB-mixed-390.csv, 390, 453, 63, (1871)
+HughB-general-a260-b573.csv, 260, 401, 141, (3854)
+HughB-housework-a958-b2658.csv, 958, 2009, 1051, (5762)
+TOTAL DIFFERENCE 2583
+$ 
+$ make;./main
+gcc -std=c99 main.c -o main
+github.com/gfwilliams/step-count
+----------------------------------
+X_STEPS = 7, RAW_THRESHOLD = 16
+File, Expected, Simulated, Diff, (Orignal)
+HughB-walk-6605.csv, 6605, 6151, -454, (3223)
+HughB-walk-2350.csv, 2350, 2215, -135, (1042)
+HughB-walk-a3070-b3046.csv, 3070, 2941, -129, (1909)
+HughB-drive-36min-0.csv, 0, 59, 59, (1199)
+HughB-drive-29min-0.csv, 0, 86, 86, (1153)
+HughB-drive-a3-b136.csv, 3, 53, 50, (535)
+HughB-work-66.csv, 66, 64, -2, (980)
+HughB-work-66.csv, 66, 64, -2, (980)
+HughB-mixed-390.csv, 390, 421, 31, (1871)
+HughB-general-a260-b573.csv, 260, 345, 85, (3854)
+HughB-housework-a958-b2658.csv, 958, 1721, 763, (5762)
+TOTAL DIFFERENCE 2055
+$ 
+$ 
+$ make;./main
+gcc -std=c99 main.c -o main
+github.com/gfwilliams/step-count
+----------------------------------
+X_STEPS = 8, RAW_THRESHOLD = 16
+File, Expected, Simulated, Diff, (Orignal)
+HughB-walk-6605.csv, 6605, 6074, -531, (3223)
+HughB-walk-2350.csv, 2350, 2215, -135, (1042)
+HughB-walk-a3070-b3046.csv, 3070, 2927, -143, (1909)
+HughB-drive-36min-0.csv, 0, 31, 31, (1199)
+HughB-drive-29min-0.csv, 0, 51, 51, (1153)
+HughB-drive-a3-b136.csv, 3, 53, 50, (535)
+HughB-work-66.csv, 66, 57, -9, (980)
+HughB-work-66.csv, 66, 57, -9, (980)
+HughB-mixed-390.csv, 390, 400, 10, (1871)
+HughB-general-a260-b573.csv, 260, 282, 22, (3854)
+HughB-housework-a958-b2658.csv, 958, 1497, 539, (5762)
+TOTAL DIFFERENCE 1757
+$ 
+$ 
+$ 
+
+====================================================
+$ ##  NOW switch to put rejects back in
+====================================================
+
+$ cd ~/src/Espruino/libs/misc/
+$ cp stepcount.add_reject.c stepcount.c
+$ 
+$ cd -
+/home/hughbarney/src/step-count
+$ 
+$ make;./main
+gcc -std=c99 main.c -o main
+github.com/gfwilliams/step-count
+----------------------------------
+X_STEPS = 8, RAW_THRESHOLD = 17
+File, Expected, Simulated, Diff, (Orignal)
+HughB-walk-6605.csv, 6605, 6330, -275, (3223)
+HughB-walk-2350.csv, 2350, 2203, -147, (1042)
+HughB-walk-a3070-b3046.csv, 3070, 2949, -121, (1909)
+HughB-drive-36min-0.csv, 0, 15, 15, (1199)
+HughB-drive-29min-0.csv, 0, 54, 54, (1153)
+HughB-drive-a3-b136.csv, 3, 68, 65, (535)
+HughB-work-66.csv, 66, 67, 1, (980)
+HughB-work-66.csv, 66, 67, 1, (980)
+HughB-mixed-390.csv, 390, 415, 25, (1871)
+HughB-general-a260-b573.csv, 260, 284, 24, (3854)
+HughB-housework-a958-b2658.csv, 958, 1579, 621, (5762)
+TOTAL DIFFERENCE 1590
+$ 
+$ make;./main
+gcc -std=c99 main.c -o main
+github.com/gfwilliams/step-count
+----------------------------------
+X_STEPS = 8, RAW_THRESHOLD = 16
+File, Expected, Simulated, Diff, (Orignal)
+HughB-walk-6605.csv, 6605, 6366, -239, (3223)
+HughB-walk-2350.csv, 2350, 2220, -130, (1042)
+HughB-walk-a3070-b3046.csv, 3070, 2986, -84, (1909)
+HughB-drive-36min-0.csv, 0, 43, 43, (1199)
+HughB-drive-29min-0.csv, 0, 62, 62, (1153)
+HughB-drive-a3-b136.csv, 3, 69, 66, (535)
+HughB-work-66.csv, 66, 68, 2, (980)
+HughB-work-66.csv, 66, 68, 2, (980)
+HughB-mixed-390.csv, 390, 472, 82, (1871)
+HughB-general-a260-b573.csv, 260, 347, 87, (3854)
+HughB-housework-a958-b2658.csv, 958, 1850, 892, (5762)
+TOTAL DIFFERENCE 2122
