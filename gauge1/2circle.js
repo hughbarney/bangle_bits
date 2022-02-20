@@ -1,0 +1,25 @@
+const h = g.getHeight();
+const w = g.getWidth();
+
+var img = require("heatshrink").decompress(atob("2Wy4P/AoP/g5H/AG8B////wVRh4VB//8CqE/CoX/+AVPCgYAB4BWQAAZaOgYRDj5DPCoWAAoMHAoIVOQAiJBFhgVB/AHEv4sMCoPgOowsLCo5xCCpiqHFhYVJOALFLaxBLHCpsPcBQVJBRd/BRMPXQoVEJpb8CAAs/CpKzBThAJJUwRvIh7pLn5kHg5iJBhUH/gVKTgJvGgYVMJ48BaJQNK/4VLN5E/XRBmEIQ0feRIADIQ0PbhQkJGY7fHWQoGGABF/RgqwMKJCwMEpE/CpoPGj6wMPwRCETRxCGgaaNIQ0BTRxCGTRwQGQh4QFQh5CFh/AISaEQIQiEQIQt8Cp8AE4aEQCIkPQh5CBQATMFABZqDgKEQgE+eabDEDIZCOHwTzQAAN+OQpCPFAJuSgaXCeaDwENyJrBNyjaCNyRVCNyRVDNyQ/CNyQ/CWgSbSWgabRNyYpCZQSbSZQSbSg5uSCYJuTNgTHSNgTHSNgTHTegMDewIARLALHSgE8Y6hWBY6avBLQL0TWYT0TLFjHSgF4gPgCqUeC4IVSIAIXBACJABLH5Y/LGXACyX4gPwCqU+gF8CqUPwEfCqUDLC0ALCc8AIRYSAIRYS4BaBY6RWBLQIARV4KzBACKvBg+ACqITBgJYTCYL0TNgL0TNgKdBY6abTg4pBTaTHCh6bSQQKbTjwYDNyI/BTaUDH4ICCNySbTKoRbCNyS0CNyRFDNyLeSFAbeSNwRCSHwbeRHwZCRS4beRKghCReAcfNyhCRE4n8QiBuCISI9EISDZFISAQEISCEDISImFIR6EEDYOACpsHHghCPQgpCQB4pCPvzNFGQoAIn4cLTRI7FRYqaOOoP4TSRJIAAxnHh6yMgKqGA44AG/yMHWRl/MA6yMEZAeHCppvMj6/HN5giJn7fKh5lIg7fKBZV/ThIVKGxLyBMhMB/4VJbg6PDFhAVLgYsIBJKcDFg4VMBhAVMFgKRGg4VMEYKzFCposBPgsfCposBOAk/CpoPC8DPDCpwQCOIN//7FKAAkPCwIAC/gVOIYQACfZAAICofACqBaCKx4A/ACYA="));
+
+function draw() {
+  var date = new Date();
+  var timeStr = require("locale").time(date,1);
+  
+  g.reset();
+  g.setColor(g.theme.bg);
+  g.fillRect(Bangle.appRect);
+
+  g.drawImage(img, 0, 0);
+
+  g.setFont('Vector', w/4);
+  g.setFontAlign(0, 0);
+  g.setColor(g.theme.fg);
+  g.drawString(timeStr, w/2, h/2);
+
+}
+
+g.clear();
+Bangle.setUI("clock");
+draw();
